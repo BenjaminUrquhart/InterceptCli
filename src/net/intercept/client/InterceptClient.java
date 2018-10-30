@@ -22,7 +22,7 @@ public class InterceptClient {
 		Scanner sc = new Scanner(System.in);
 		System.out.println("Client ID: " + json.getString("client_id"));
 		System.out.println("Client type: " + json.getString("client_type"));
-		System.out.println("Logged in on " + new Date(json.getLong("date")));
+		System.out.println("Date: " + new Date(json.getLong("date")));
 		System.out.println("Ready to log in.");
 		json = new JSONObject();
 		json.put("request", "auth");
@@ -36,7 +36,9 @@ public class InterceptClient {
 			output.println(json);
 			output.flush();
 			json = new JSONObject(input.readLine());
-			success = json.getBoolean("success");
+			if(json.has("success")){
+				success = json.getBoolean("success");
+			}
 			if(!success){
 				System.out.println(json.getString("error"));
 			}
@@ -48,7 +50,7 @@ public class InterceptClient {
 		output.println(json);
 		output.flush();
 		json = new JSONObject(input.readLine());
-		if(json.has("sucess") && json.getBoolean("sucess")){ //Not a typo, dev of Intercept did a goof
+		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
 			System.out.println("Logged in and ready.");
 			ReceiveHandler listener = new ReceiveHandler(input);
 			listener.start();
