@@ -12,7 +12,6 @@ public class ReceiveHandler extends Thread{
 		this.reader = reader;
 	}
 	
-	@SuppressWarnings("deprecation")
 	@Override
 	public void run(){
 		try{
@@ -20,11 +19,11 @@ public class ReceiveHandler extends Thread{
 			EventHandler.handleEvent(new JSONObject(reader.readLine()));
 		}
 		catch(NullPointerException e){
-			this.stop(e);
+			System.exit(0);
 		}
 		catch(Exception e){
 			e.printStackTrace();
-			this.stop(e);
+			System.exit(1);
 		}
 	}
 }
