@@ -27,6 +27,7 @@ public class InterceptClient {
 		boolean success = false;
 		while(!success){
 			json = new JSONObject();
+			login = new JSONObject();
 			json.put("request", "auth");
 			System.out.print("Username: ");
 			login.put("username", sc.nextLine());
@@ -41,6 +42,8 @@ public class InterceptClient {
 			}
 			if(!success){
 				System.out.println(json.getString("error"));
+				System.out.println("Due to a flaw in the server side JSON processing, you must restart this client.");
+				System.exit(0);
 			}
 		}
 		json.put("request", "connect");
