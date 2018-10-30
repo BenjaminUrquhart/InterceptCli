@@ -24,10 +24,10 @@ public class InterceptClient {
 		System.out.println("Client type: " + json.getString("client_type"));
 		System.out.println("Date: " + new Date(json.getLong("date")));
 		System.out.println("Ready to log in.");
-		json = new JSONObject();
-		json.put("request", "auth");
 		boolean success = false;
 		while(!success){
+			json = new JSONObject();
+			json.put("request", "auth");
 			System.out.print("Username: ");
 			login.put("username", sc.nextLine());
 			System.out.print("Password: ");
