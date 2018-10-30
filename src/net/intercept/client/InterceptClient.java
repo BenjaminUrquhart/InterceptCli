@@ -9,8 +9,8 @@ import org.json.JSONObject;
 
 public class InterceptClient {
 
-	//private static final String IP = "209.97.136.54";
-	private static final String IP = "127.0.0.1";
+	private static final String IP = "209.97.136.54";
+	//private static final String IP = "127.0.0.1";
 	private static final int PORT = 13373;
 	
 	public static void main(String[] args) throws Exception {
