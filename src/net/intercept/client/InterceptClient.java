@@ -18,7 +18,7 @@ public class InterceptClient {
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			@Override
 			public void run(){
-				System.out.println("\u001b[0m");
+				System.out.println("\nlogout\u001b[0m");
 			}
 		});
 		if(args.length > 0){
@@ -65,14 +65,20 @@ public class InterceptClient {
 		output.flush();
 		json = new JSONObject(input.readLine());
 		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
-			System.out.println("Logged in and ready.");
 			ReceiveHandler listener = new ReceiveHandler(input);
 			listener.start();
-			System.out.print(">> ");
+			String line;
 			json = new JSONObject();
 			json.put("request", "command");
+			System.out.println("Logged in and ready.");
+			System.out.print(">> ");
 			while(true){
-				json.put("cmd", sc.nextLine());
+				line = sc.nextLine();
+				if(line.equals("clear")){
+					System.out.print("\u001b[0\u001b[1\u001b[2J>> ");
+					continue;
+				}
+				json.put("cmd", line);
 				output.println(json);
 				output.flush();
 			}
