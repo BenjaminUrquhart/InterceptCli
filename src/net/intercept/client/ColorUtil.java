@@ -14,6 +14,8 @@ public class ColorUtil {
 	public static final String WHITE = "37;1";
 	public static final String RESET = "0;1";
 	
+	public static final String RESET_STR = String.format(BODY, RESET);
+	
 	public static String colorfy(String text){
 		if(!text.contains(SPLIT)){
 			return text;

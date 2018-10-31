@@ -42,10 +42,10 @@ public class EventHandler {
 			msg = json.getString("msg");
 		}
 		if(json.has("success")){
-			msg = (json.getBoolean("success") ? "" : "[ERROR] ") + msg;
+			msg = (json.getBoolean("success") ? "" : String.format(ColorUtil.BODY, ColorUtil.RED) + "[ERROR] ") + ColorUtil.RESET_STR + msg;
 		}
 		if(broadcast){
-			msg = "[BROADCAST] " + msg;
+			msg = String.format(ColorUtil.BODY, ColorUtil.BLUE) + "[BROADCAST] " + ColorUtil.RESET_STR + msg;
 		}
 		if(event.equals("traceStart")){
 			System.out.println("You are being traced! Remote IP: " + json.getString("system"));
