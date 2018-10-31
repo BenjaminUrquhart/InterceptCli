@@ -23,7 +23,7 @@ public class ColorUtil {
 	private static String addColors(String[] strings){
 		String out = "";
 		for(int i = 1; i < strings.length; i++){
-			out += String.format(BODY, getColorInt(strings[i].substring(0, 1))) + strings[i];
+			out += String.format(BODY, getColorInt(strings[i].substring(0, 1))) + strings[i].substring(1);
 		}
 		out = strings[0] + out + String.format(BODY, RESET);
 		return out;

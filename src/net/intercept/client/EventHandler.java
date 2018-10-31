@@ -10,6 +10,20 @@ public class EventHandler {
 		String local, remote = null;
 		JSONObject conn = null;
 		boolean broadcast = event.equals("broadcast");
+		if(json.has("panic")){
+			if(json.getBoolean("panic")){
+				System.out.println(
+						String.format(ColorUtil.BODY, ColorUtil.RED)
+						+ " You are now in panic mode"
+						+ String.format(ColorUtil.BODY, ColorUtil.RESET));
+			}
+			else{
+				System.out.println(
+						String.format(ColorUtil.BODY, ColorUtil.GREEN)
+						+ " You are no longer in panic mode"
+						+ String.format(ColorUtil.BODY, ColorUtil.RESET));
+			}
+		}
 		if(event.equals("error")){
 			msg = json.getString("error");
 		}
@@ -28,11 +42,16 @@ public class EventHandler {
 			msg = json.getString("msg");
 		}
 		if(json.has("success")){
-			msg = (json.getBoolean("success") ? "[SUCCESS] " : "[ERROR] ") + msg;
+			msg = (json.getBoolean("success") ? "" : "[ERROR] ") + msg;
 		}
 		if(broadcast){
 			msg = "[BROADCAST] " + msg;
 		}
+		if(event.equals("traceStart")){
+			System.out.println("You are being traced! Remote IP: " + json.getString("system"));
+		}
+		System.out.println();
 		System.out.println(ColorUtil.colorfy(msg));
+		System.out.print(">> ");
 	}
 }

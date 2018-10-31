@@ -2,6 +2,7 @@ package net.intercept.client;
 
 import java.io.BufferedReader;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ReceiveHandler extends Thread{
@@ -15,10 +16,21 @@ public class ReceiveHandler extends Thread{
 	@Override
 	public void run(){
 		try{
-			while(true)
-			EventHandler.handleEvent(new JSONObject(reader.readLine()));
+			while(true){
+				try{
+					EventHandler.handleEvent(new JSONObject(reader.readLine()));
+					System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
+				}
+				catch(JSONException e){
+					System.out.println("An error occured while parsing data:\n" + e.getMessage());
+				}
+			}
+		}
+		catch(ArrayIndexOutOfBoundsException e){
+			System.out.println();
 		}
 		catch(NullPointerException e){
+			System.out.println("Connection to server dropped unexpectedly");
 			System.exit(0);
 		}
 		catch(Exception e){

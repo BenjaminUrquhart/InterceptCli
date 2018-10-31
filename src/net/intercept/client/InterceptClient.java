@@ -9,11 +9,14 @@ import org.json.JSONObject;
 
 public class InterceptClient {
 
-	private static final String IP = "209.97.136.54";
-	//private static final String IP = "127.0.0.1";
+	private static String IP = "209.97.136.54";
 	private static final int PORT = 13373;
 	
 	public static void main(String[] args) throws Exception {
+		if(args.length > 0){
+			IP = "127.0.0.1";
+			System.out.println("Local mode enabled");
+		}
 		Socket conn = new Socket(IP, PORT);
 		BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		PrintStream output = new PrintStream(conn.getOutputStream());
@@ -57,6 +60,7 @@ public class InterceptClient {
 			System.out.println("Logged in and ready.");
 			ReceiveHandler listener = new ReceiveHandler(input);
 			listener.start();
+			System.out.print(">> ");
 			json = new JSONObject();
 			json.put("request", "command");
 			while(true){
