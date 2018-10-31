@@ -12,6 +12,7 @@ public class SendHandler {
 		stream = writer;
 	}
 	public static void send(JSONObject json){
+		System.out.println(json);
 		stream.println(json.toString());
 	}
 }

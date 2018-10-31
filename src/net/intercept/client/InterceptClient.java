@@ -19,7 +19,7 @@ public class InterceptClient {
 		}
 		Socket conn = new Socket(IP, PORT);
 		BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		PrintStream output = new PrintStream(conn.getOutputStream());
+		PrintWriter output = new PrintWriter(conn.getOutputStream());
 		JSONObject json = new JSONObject(input.readLine());
 		JSONObject login = new JSONObject();
 		Scanner sc = new Scanner(System.in);
