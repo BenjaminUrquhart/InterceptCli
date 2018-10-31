@@ -29,6 +29,9 @@ public class ReceiveHandler extends Thread{
 		catch(ArrayIndexOutOfBoundsException e){
 			System.out.println();
 		}
+		catch(StringIndexOutOfBoundsException e){
+			System.out.println();
+		}
 		catch(NullPointerException e){
 			System.out.println("Connection to server dropped unexpectedly");
 			System.exit(0);

@@ -13,6 +13,14 @@ public class InterceptClient {
 	private static final int PORT = 13373;
 	
 	public static void main(String[] args) throws Exception {
+		System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
+		//Reset ANSI on shutdown
+		Runtime.getRuntime().addShutdownHook(new Thread(){
+			@Override
+			public void run(){
+				System.out.println("\u001b[0m");
+			}
+		});
 		if(args.length > 0){
 			IP = "127.0.0.1";
 			System.out.println("Local mode enabled");
