@@ -4,7 +4,17 @@ import org.json.JSONObject;
 
 public class EventHandler {
 
+	public static String connectedIP = "system";
+	
 	public static void handleEvent(JSONObject json){
+		if(!json.has("event")){
+			System.out.println(
+					String.format(ColorUtil.BODY, ColorUtil.RED)
+					+ json.getString("error")
+					+ String.format(ColorUtil.BODY, ColorUtil.RESET));
+			System.out.print(InterceptClient.shell());
+			return;
+		}
 		String event = json.getString("event");
 		String msg = "(no content)";
 		String local, remote = null;
@@ -33,8 +43,10 @@ public class EventHandler {
 			remote = conn.getString("conn");
 			if(local.equals(remote)){
 				msg = "[INFO] Disconnected from server";
+				connectedIP = "localhost";
 			}
 			else{
+				connectedIP = remote;
 				msg = String.format("[INFO] %s -> %s", local, remote);
 			}
 		}
@@ -52,6 +64,6 @@ public class EventHandler {
 		}
 		System.out.println();
 		System.out.println(ColorUtil.colorfy(msg));
-		System.out.print(">> ");
+		System.out.print(InterceptClient.shell());
 	}
 }

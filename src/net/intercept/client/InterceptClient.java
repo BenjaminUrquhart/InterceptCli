@@ -12,6 +12,11 @@ public class InterceptClient {
 	private static String IP = "209.97.136.54";
 	private static final int PORT = 13373;
 	
+	public static final String SHELL = "root@%s~# ";
+	
+	public static String shell(){
+		return String.format(SHELL, EventHandler.connectedIP);
+	}
 	public static void main(String[] args) throws Exception {
 		System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
 		//Reset ANSI on shutdown
@@ -71,11 +76,11 @@ public class InterceptClient {
 			json = new JSONObject();
 			json.put("request", "command");
 			System.out.println("Logged in and ready.");
-			System.out.print(">> ");
+			System.out.print(shell());
 			while(true){
 				line = sc.nextLine();
 				if(line.equals("clear")){
-					System.out.print("\u001b[0\u001b[1\u001b[2J>> ");
+					System.out.print("\u001b[0\u001b[1\u001b[2J" + shell());
 					continue;
 				}
 				json.put("cmd", line);
