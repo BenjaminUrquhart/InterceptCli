@@ -37,7 +37,7 @@ public class EventHandler {
 		if(event.equals("error")){
 			msg = json.getString("error");
 		}
-		if(event.equals("connected")){
+		else if(event.equals("connected")){
 			conn = json.getJSONObject("player");
 			local = conn.getString("ip");
 			remote = conn.getString("conn");
@@ -50,6 +50,13 @@ public class EventHandler {
 				msg = String.format("[INFO] %s -> %s", local, remote);
 			}
 		}
+		else if(event.equals("command") || broadcast){} //To suppress the Unknown Event message
+		else if(event.equals("traceStart")){
+			System.out.println("You are being traced! Remote IP: " + json.getString("system"));
+		}
+		else{
+			System.out.println("Unknown event from data: " + json + "\n");
+		}
 		if(json.has("msg")){
 			msg = json.getString("msg");
 		}
@@ -59,11 +66,7 @@ public class EventHandler {
 		if(broadcast){
 			msg = String.format(ColorUtil.BODY, ColorUtil.BLUE) + "[BROADCAST] " + ColorUtil.RESET_STR + msg;
 		}
-		if(event.equals("traceStart")){
-			System.out.println("You are being traced! Remote IP: " + json.getString("system"));
-		}
-		System.out.println();
-		System.out.println(ColorUtil.colorfy(msg));
+		System.out.println(ColorUtil.removePrefixedSpaces(ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR + ColorUtil.colorfy(msg)));
 		System.out.print(InterceptClient.shell());
 	}
 }

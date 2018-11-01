@@ -80,7 +80,7 @@ public class InterceptClient {
 			while(true){
 				line = sc.nextLine();
 				if(line.equals("clear")){
-					System.out.print("\u001b[0\u001b[1\u001b[2J" + shell());
+					System.out.print(ColorUtil.CLEAR_SCREEN + shell());
 					continue;
 				}
 				json.put("cmd", line);

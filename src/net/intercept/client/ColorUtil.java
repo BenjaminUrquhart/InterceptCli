@@ -13,6 +13,9 @@ public class ColorUtil {
 	public static final String CYAN = "36;1";
 	public static final String WHITE = "37;1";
 	public static final String RESET = "0;1";
+	public static final String CLEAR_LINE = "\u001b[2K";
+	public static final String CLEAR_SCREEN = "\u001b[2J";
+	public static final String RESET_CURSOR = "\u001b[1000D";
 	
 	public static final String RESET_STR = String.format(BODY, RESET);
 	
@@ -21,6 +24,15 @@ public class ColorUtil {
 			return text;
 		}
 		return addColors(text.split(SPLIT));
+	}
+	public static String removePrefixedSpaces(String string){
+		for(int i = 0; i < string.length(); i++){
+			if(string.charAt(i) == ' '){
+				continue;
+			}
+			return string.substring(i);
+		}
+		return string;
 	}
 	private static String addColors(String[] strings){
 		String out = "";
