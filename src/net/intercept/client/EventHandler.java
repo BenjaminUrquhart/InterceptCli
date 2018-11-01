@@ -34,6 +34,9 @@ public class EventHandler {
 						+ String.format(ColorUtil.BODY, ColorUtil.RESET));
 			}
 		}
+		if(json.has("msg")){
+			msg = json.getString("msg");
+		}
 		if(event.equals("error")){
 			msg = json.getString("error");
 		}
@@ -54,11 +57,11 @@ public class EventHandler {
 		else if(event.equals("traceStart")){
 			System.out.println("You are being traced! Remote IP: " + json.getString("system"));
 		}
+		else if(event.equals("chat")){
+			msg = String.format(ColorUtil.BODY + "[CHAT] ", ColorUtil.GREEN) + msg + ColorUtil.RESET_STR;
+		}
 		else{
 			System.out.println("Unknown event from data: " + json + "\n");
-		}
-		if(json.has("msg")){
-			msg = json.getString("msg");
 		}
 		if(json.has("success")){
 			msg = (json.getBoolean("success") ? "" : String.format(ColorUtil.BODY, ColorUtil.RED) + "[ERROR] ") + ColorUtil.RESET_STR + msg;
