@@ -69,6 +69,7 @@ public class EventHandler {
 		if(broadcast){
 			msg = String.format(ColorUtil.BODY, ColorUtil.BLUE) + "[BROADCAST] " + ColorUtil.RESET_STR + msg;
 		}
+		msg = msg.replace("\u200b", " ");
 		System.out.println(ColorUtil.removePrefixedSpaces(ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR + ColorUtil.colorfy(msg)));
 		System.out.print(InterceptClient.shell());
 	}
