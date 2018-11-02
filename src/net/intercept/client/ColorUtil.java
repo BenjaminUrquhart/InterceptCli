@@ -37,9 +37,17 @@ public class ColorUtil {
 	private static String addColors(String[] strings){
 		String out = "";
 		for(int i = 1; i < strings.length; i++){
-			out += String.format(BODY, getColorCode(strings[i].substring(0, 1))) + strings[i].substring(1);
+			if(InterceptClient.ANSI){
+				out += String.format(BODY, getColorCode(strings[i].substring(0, 1))) + strings[i].substring(1);
+			}
+			else{
+				out += strings[i].substring(1);
+			}
 		}
-		out = strings[0] + out + String.format(BODY, RESET);
+		out = strings[0] + out;
+		if(InterceptClient.ANSI){
+			 out += String.format(BODY, RESET);
+		}
 		return out;
 	}
 	private static String getColorCode(String s){

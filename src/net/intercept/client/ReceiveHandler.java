@@ -19,6 +19,7 @@ public class ReceiveHandler extends Thread{
 			while(true){
 				try{
 					EventHandler.handleEvent(new JSONObject(reader.readLine()));
+					if(InterceptClient.ANSI)
 					System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
 				}
 				catch(JSONException e){

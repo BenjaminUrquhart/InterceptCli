@@ -9,9 +9,11 @@ public class EventHandler {
 	public static void handleEvent(JSONObject json){
 		if(!json.has("event")){
 			System.out.println(
+					ColorUtil.removePrefixedSpaces(
 					String.format(ColorUtil.BODY, ColorUtil.RED)
 					+ json.getString("error")
-					+ String.format(ColorUtil.BODY, ColorUtil.RESET));
+					+ String.format(ColorUtil.BODY, ColorUtil.RESET)));
+			
 			System.out.print(InterceptClient.shell());
 			return;
 		}
@@ -20,20 +22,6 @@ public class EventHandler {
 		String local, remote = null;
 		JSONObject conn = null;
 		boolean broadcast = event.equals("broadcast");
-		if(json.has("panic")){
-			if(json.getBoolean("panic")){
-				System.out.println(
-						String.format(ColorUtil.BODY, ColorUtil.RED)
-						+ " You are now in panic mode"
-						+ String.format(ColorUtil.BODY, ColorUtil.RESET));
-			}
-			else{
-				System.out.println(
-						String.format(ColorUtil.BODY, ColorUtil.GREEN)
-						+ " You are no longer in panic mode"
-						+ String.format(ColorUtil.BODY, ColorUtil.RESET));
-			}
-		}
 		if(json.has("msg")){
 			msg = json.getString("msg");
 		}
@@ -69,8 +57,31 @@ public class EventHandler {
 		if(broadcast){
 			msg = String.format(ColorUtil.BODY, ColorUtil.BLUE) + "[BROADCAST] " + ColorUtil.RESET_STR + msg;
 		}
+		if(json.has("panic")){
+			if(json.getBoolean("panic")){
+				msg = String.format(ColorUtil.BODY, ColorUtil.RED)
+						+ " You are in panic mode"
+						+ String.format(ColorUtil.BODY, ColorUtil.RESET)
+						+ "\n" + msg;
+			}
+			else{
+				msg = String.format(ColorUtil.BODY, ColorUtil.GREEN)
+						+ " You are no longer in panic mode"
+						+ String.format(ColorUtil.BODY, ColorUtil.RESET)
+						+ "\n" + msg;
+			}
+		}
+		if(InterceptClient.ANSI){
+			System.out.println(ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR);
+		}
+		else{
+			if(json.has("msg")){
+				msg = "\n" + json.getString("msg");
+			}
+		}
+		msg = ColorUtil.removePrefixedSpaces(ColorUtil.colorfy(msg));
 		msg = msg.replace("\u200b", " ");
-		System.out.println(ColorUtil.removePrefixedSpaces(ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR + ColorUtil.colorfy(msg)));
+		System.out.println(msg);
 		System.out.print(InterceptClient.shell());
 	}
 }

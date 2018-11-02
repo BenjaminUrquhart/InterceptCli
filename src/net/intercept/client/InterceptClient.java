@@ -14,11 +14,12 @@ public class InterceptClient {
 	
 	public static final String SHELL = "root@%s~# ";
 	
+	public static boolean ANSI = !System.getProperty("os.name").startsWith("Windows");
+	
 	public static String shell(){
 		return String.format(SHELL, EventHandler.connectedIP);
 	}
 	public static void main(String[] args) throws Exception {
-		System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
 		//Reset ANSI on shutdown
 		Runtime.getRuntime().addShutdownHook(new Thread(){
 			@Override
@@ -27,8 +28,22 @@ public class InterceptClient {
 			}
 		});
 		if(args.length > 0){
-			IP = "127.0.0.1";
-			System.out.println("Local mode enabled");
+			for(String arg : args){
+				if(arg.equalsIgnoreCase("local")){
+					IP = "127.0.0.1";
+					System.out.println("Local mode enabled");
+				}
+				if(arg.equalsIgnoreCase("noansi")){
+					ANSI = false;
+				}
+			}
+		}
+		if(ANSI){
+			System.out.print(ColorUtil.CLEAR_SCREEN);
+			System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
+		}
+		else{
+			System.out.println("ANSI disabled");
 		}
 		Socket conn = new Socket(IP, PORT);
 		BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -80,7 +95,13 @@ public class InterceptClient {
 			while(true){
 				line = sc.nextLine();
 				if(line.equals("clear")){
-					System.out.print(ColorUtil.CLEAR_SCREEN + shell());
+					if(ANSI){
+						System.out.print(ColorUtil.CLEAR_SCREEN);
+					}
+					else{
+						System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+					}
+					System.out.print(shell());
 					continue;
 				}
 				json.put("cmd", line);
