@@ -76,11 +76,15 @@ public class EventHandler {
 		}
 		else{
 			if(json.has("msg")){
-				msg = "\n" + json.getString("msg");
+				msg = json.getString("msg");
 			}
+			if(broadcast) {
+				msg = "[BROADCAST] " + msg;
+			}
+			msg = "\n" + msg;
 		}
 		msg = ColorUtil.removePrefixedSpaces(ColorUtil.colorfy(msg));
-		msg = msg.replace("\u200b", " ");
+		msg = msg.replace("\u200b", " ").replace("\u00C2", "");
 		System.out.println(msg);
 		System.out.print(InterceptClient.shell());
 	}
