@@ -39,8 +39,7 @@ public class InterceptClient {
 			}
 		}
 		if(ANSI){
-			System.out.print(ColorUtil.CLEAR_SCREEN);
-			System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
+			System.out.print(ColorUtil.CLEAR_SCREEN + ColorUtil.RESET);
 		}
 		else{
 			System.out.println("ANSI disabled");
@@ -73,8 +72,8 @@ public class InterceptClient {
 			}
 			if(!success){
 				System.out.println(json.getString("error"));
-				System.out.println("Due to a flaw in the server side JSON processing, you must restart this client.");
-				System.exit(0);
+				//System.out.println("Due to a flaw in the server side JSON processing, you must restart this client.");
+				//System.exit(0);
 			}
 		}
 		json.put("request", "connect");

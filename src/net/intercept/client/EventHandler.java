@@ -5,14 +5,14 @@ import org.json.JSONObject;
 public class EventHandler {
 
 	public static String connectedIP = "system";
+	public SoundHandler sound = new SoundHandler();
 	
-	public static void handleEvent(JSONObject json){
+	public void handleEvent(JSONObject json){
 		if(!json.has("event")){
 			System.out.println(
-					ColorUtil.removePrefixedSpaces(
-					String.format(ColorUtil.BODY, ColorUtil.RED)
+					ColorUtil.RED
 					+ json.getString("error")
-					+ String.format(ColorUtil.BODY, ColorUtil.RESET)));
+					+ ColorUtil.RESET);
 			
 			System.out.print(InterceptClient.shell());
 			return;
@@ -24,6 +24,7 @@ public class EventHandler {
 		boolean broadcast = event.equals("broadcast");
 		if(json.has("msg")){
 			msg = json.getString("msg");
+			msg = ColorUtil.toANSI(msg);
 		}
 		if(event.equals("error")){
 			msg = json.getString("error");
@@ -43,49 +44,48 @@ public class EventHandler {
 		}
 		else if(event.equals("command") || broadcast){} //To suppress the Unknown Event message
 		else if(event.equals("traceStart")){
-			System.out.println("You are being traced! Remote IP: " + json.getString("system"));
+			System.out.println("\nYou are being traced! Remote IP: " + json.getString("system"));
+		}
+		else if(event.equals("traceComplete")){
+			System.out.println("\nYou have been traced from " + json.getString("system"));
 		}
 		else if(event.equals("chat")){
-			msg = String.format(ColorUtil.BODY + "[CHAT] ", ColorUtil.GREEN) + msg + ColorUtil.RESET_STR;
+			msg = ColorUtil.GREEN + "[CHAT] " + msg + ColorUtil.RESET_STR;
 		}
 		else{
 			System.out.println("Unknown event from data: " + json + "\n");
 		}
 		if(json.has("success")){
-			msg = (json.getBoolean("success") ? "" : String.format(ColorUtil.BODY, ColorUtil.RED) + "[ERROR] ") + ColorUtil.RESET_STR + msg;
+			msg = (json.getBoolean("success") ? "" : ColorUtil.RED + "[ERROR] ") + ColorUtil.RESET_STR + msg;
 		}
 		if(broadcast){
-			msg = String.format(ColorUtil.BODY, ColorUtil.BLUE) + "[BROADCAST] " + ColorUtil.RESET_STR + msg;
+			msg = ColorUtil.BLUE + "[BROADCAST] " + ColorUtil.RESET_STR + msg;
 		}
 		if(json.has("panic")){
-			if(json.getBoolean("panic")){
-				msg = String.format(ColorUtil.BODY, ColorUtil.RED)
-						+ " You are in panic mode"
-						+ String.format(ColorUtil.BODY, ColorUtil.RESET)
-						+ "\n" + msg;
-			}
-			else{
-				msg = String.format(ColorUtil.BODY, ColorUtil.GREEN)
-						+ " You are no longer in panic mode"
-						+ String.format(ColorUtil.BODY, ColorUtil.RESET)
-						+ "\n" + msg;
-			}
+			msg = ColorUtil.RED
+					+ "You are in panic mode"
+					+ ColorUtil.RESET
+					+ "\n" + msg;
+			sound.setTrack("breach");
+		}
+		if(json.has("panicEnd")){
+			msg = ColorUtil.GREEN
+					+ "You are no longer in panic mode"
+					+ ColorUtil.RESET
+					+ "\n" + msg;
+			sound.setTrack("peace2");
 		}
 		if(InterceptClient.ANSI){
-			System.out.println(ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR);
+			System.out.print(ColorUtil.RESET);
 		}
 		else{
 			if(json.has("msg")){
-				msg = json.getString("msg");
+				msg = "\n" + json.getString("msg");
+				msg = ColorUtil.stripBubColor(msg);
 			}
-			if(broadcast) {
-				msg = "[BROADCAST] " + msg;
-			}
-			msg = "\n" + msg;
 		}
-		msg = ColorUtil.removePrefixedSpaces(ColorUtil.colorfy(msg));
-		msg = msg.replace("\u200b", " ").replace("\u00C2", "");
-		System.out.println(msg);
+		msg = msg.replace("\u200b", " ").replace("\t", " ");
+		System.out.println(ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR + msg);
 		System.out.print(InterceptClient.shell());
 	}
 }

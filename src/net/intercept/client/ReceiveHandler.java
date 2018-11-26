@@ -8,9 +8,11 @@ import org.json.JSONObject;
 public class ReceiveHandler extends Thread{
 
 	private BufferedReader reader;
+	private EventHandler handler;
 	
 	public ReceiveHandler(BufferedReader reader) throws Exception{
 		this.reader = reader;
+		this.handler = new EventHandler();
 	}
 	
 	@Override
@@ -18,9 +20,9 @@ public class ReceiveHandler extends Thread{
 		try{
 			while(true){
 				try{
-					EventHandler.handleEvent(new JSONObject(reader.readLine()));
+					handler.handleEvent(new JSONObject(reader.readLine()));
 					if(InterceptClient.ANSI)
-					System.out.print(String.format(ColorUtil.BODY, ColorUtil.RESET));
+					System.out.print(ColorUtil.RESET);
 				}
 				catch(JSONException e){
 					System.out.println("An error occured while parsing data:\n" + e.getMessage());
