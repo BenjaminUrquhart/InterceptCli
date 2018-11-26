@@ -35,10 +35,13 @@ public class SoundHandler{
 				else if(track.equals("breach_loop")){
 					track = "breach";
 				}
-				clip.close();
+			}
+			else{
+				clip.flush();
 			}
 			try {
 				set = false;
+				clip.close();
 				stream = AudioSystem.getAudioInputStream(new File(path, track + ".wav"));
 				clip.open(stream);
 				clip.start();
