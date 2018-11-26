@@ -1,8 +1,8 @@
 package net.intercept.client;
 
-import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -18,7 +18,6 @@ public class SoundHandler{
 	private AudioInputStream stream;
 	private Clip clip = null;
 	private String track;
-	private File path;
 	
 	private LineListener listener = (event) ->{
 		if(event.getType().equals(Type.STOP)){
@@ -42,7 +41,7 @@ public class SoundHandler{
 			try {
 				set = false;
 				clip.close();
-				stream = AudioSystem.getAudioInputStream(new File(path, track + ".wav"));
+				stream = AudioSystem.getAudioInputStream(new BufferedInputStream(getClass().getResourceAsStream("/" + track + ".wav")));
 				clip.open(stream);
 				clip.start();
 			} catch (UnsupportedAudioFileException e) {
@@ -57,9 +56,6 @@ public class SoundHandler{
 	};
 	
 	protected SoundHandler(){
-		URL source = getClass().getClassLoader().getResource("/sound/");
-		path = source == null ? new File("sound/") : new File(source.getFile());
-		muted = !path.exists();
 		track = "peace";
 		try{
 			clip = AudioSystem.getClip();
@@ -71,6 +67,7 @@ public class SoundHandler{
 		start();
 	}
 	protected void setTrack(String track){
+		if(muted) return;
 		this.track = track;
 		this.set = true;
 		this.clip.stop();
@@ -80,9 +77,13 @@ public class SoundHandler{
 			return;
 		}
 		try{
-			stream = AudioSystem.getAudioInputStream(new File(path, track + ".wav"));
+			stream = AudioSystem.getAudioInputStream(new BufferedInputStream(getClass().getResourceAsStream("/" + track + ".wav")));
 			clip.open(stream);
 			clip.start();
+		}
+		catch(FileNotFoundException e){
+			System.out.println(e + "\nSound disabled");
+			muted = true;
 		}
 		catch(Exception e){
 			e.printStackTrace();
