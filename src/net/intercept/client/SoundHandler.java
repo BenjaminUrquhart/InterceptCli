@@ -57,10 +57,8 @@ public class SoundHandler{
 	};
 	
 	protected SoundHandler(){
-		URL source = getClass().getResource("sound/");
-		path = source == null ? new File("/" + 
-		getClass().getName().replace(".", "/")
-		.replace(getClass().getSimpleName(), "")+ "sound/") : new File(source.getFile());
+		URL source = getClass().getClassLoader().getResource("/sound/");
+		path = source == null ? new File("sound/") : new File(source.getFile());
 		muted = !path.exists();
 		track = "peace";
 		try{
