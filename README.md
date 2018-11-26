@@ -3,7 +3,7 @@
 https://bubmet.itch.io/intercept
 
 # Music credits:
-- LewisTehMiner
+- LewisTehMinerz
 - Ghosty
 
 https://soundcloud.com/lewistehminerz/sets/intercept-ost
