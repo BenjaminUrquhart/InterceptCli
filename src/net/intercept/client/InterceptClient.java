@@ -61,8 +61,10 @@ public class InterceptClient {
 			json.put("request", "auth");
 			System.out.print("Username: ");
 			login.put("username", sc.nextLine());
-			System.out.print("Password: ");
-			login.put("password", sc.nextLine());
+			if(System.console() == null){
+				System.out.print("Password: ");
+			}
+			login.put("password", System.console() == null ? sc.nextLine() : new String(System.console().readPassword("Password: ")));
 			json.put("login", login);
 			output.println(json);
 			output.flush();
