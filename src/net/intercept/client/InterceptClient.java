@@ -15,6 +15,7 @@ public class InterceptClient {
 	public static final String SHELL = "root@%s~# ";
 	
 	public static boolean ANSI = !System.getProperty("os.name").startsWith("Windows");
+	public static boolean MUTE = false;
 	
 	public static String shell(){
 		return String.format(SHELL, EventHandler.connectedIP);
@@ -36,6 +37,9 @@ public class InterceptClient {
 				if(arg.equalsIgnoreCase("noansi")){
 					ANSI = false;
 				}
+				if(arg.equalsIgnoreCase("mute")){
+					MUTE = true;
+				}
 			}
 		}
 		if(ANSI){
@@ -43,6 +47,12 @@ public class InterceptClient {
 		}
 		else{
 			System.out.println("ANSI disabled");
+		}
+		if(MUTE){
+			System.out.println("Sound disabled");
+		}
+		if(IP.equals("127.0.0.1")){
+			System.out.println("Local mode enabled");
 		}
 		Socket conn = new Socket(IP, PORT);
 		BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()));

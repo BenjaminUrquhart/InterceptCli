@@ -56,15 +56,17 @@ public class SoundHandler{
 	};
 	
 	protected SoundHandler(){
-		track = "peace";
-		try{
-			clip = AudioSystem.getClip();
-			clip.addLineListener(listener);
+		if(!InterceptClient.MUTE){
+			track = "peace";
+			try{
+				clip = AudioSystem.getClip();
+				clip.addLineListener(listener);
+			}
+			catch(Exception e){
+				muted = true;
+			}
+			start();
 		}
-		catch(Exception e){
-			muted = true;
-		}
-		start();
 	}
 	protected void setTrack(String track){
 		if(muted) return;
@@ -73,7 +75,7 @@ public class SoundHandler{
 		this.clip.stop();
 	}
 	public void start(){
-		if(muted){
+		if(muted || InterceptClient.MUTE){
 			return;
 		}
 		try{

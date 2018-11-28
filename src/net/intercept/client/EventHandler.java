@@ -4,8 +4,9 @@ import org.json.JSONObject;
 
 public class EventHandler {
 
+	private boolean panic = false;
 	public static String connectedIP = "system";
-	public SoundHandler sound = new SoundHandler();
+	private SoundHandler sound = new SoundHandler();
 	
 	public void handleEvent(JSONObject json){
 		if(!json.has("event")){
@@ -36,6 +37,9 @@ public class EventHandler {
 			if(local.equals(remote)){
 				msg = "[INFO] Disconnected from server";
 				connectedIP = "localhost";
+				if(panic){
+					json.put("panicEnd", true);
+				}
 			}
 			else{
 				connectedIP = remote;
@@ -66,6 +70,7 @@ public class EventHandler {
 					+ "You are in panic mode"
 					+ ColorUtil.RESET
 					+ "\n" + msg;
+			panic = true;
 			sound.setTrack("breach");
 		}
 		if(json.has("panicEnd")){
@@ -73,6 +78,7 @@ public class EventHandler {
 					+ "You are no longer in panic mode"
 					+ ColorUtil.RESET
 					+ "\n" + msg;
+			panic = false;
 			sound.setTrack("peace2");
 		}
 		if(InterceptClient.ANSI){
