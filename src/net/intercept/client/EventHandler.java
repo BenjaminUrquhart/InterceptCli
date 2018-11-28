@@ -4,9 +4,14 @@ import org.json.JSONObject;
 
 public class EventHandler {
 
-	private boolean panic = false;
 	public static String connectedIP = "system";
-	private SoundHandler sound = new SoundHandler();
+	private Sound sound;
+	private boolean panic;
+	
+	public EventHandler() {
+		this.sound = InterceptClient.OGG ? new SoundHandlerOgg() : new SoundHandler();
+		this.panic = false;
+	}
 	
 	public void handleEvent(JSONObject json){
 		if(!json.has("event")){
@@ -89,7 +94,7 @@ public class EventHandler {
 				msg = ColorUtil.stripBubColor(json.getString("msg"));
 			}
 		}
-		msg = msg.replace("\u200b", " ").replace("\t", " ");
+		msg = msg.replace("\u200b", " ").replace("\t", " ").replace("\u00C2", "");
 		System.out.println(msg);
 		System.out.print(InterceptClient.shell());
 	}

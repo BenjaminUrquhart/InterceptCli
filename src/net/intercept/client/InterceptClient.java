@@ -16,6 +16,7 @@ public class InterceptClient {
 	
 	public static boolean ANSI = !System.getProperty("os.name").startsWith("Windows");
 	public static boolean MUTE = false;
+	public static boolean OGG = false;
 	
 	public static String shell(){
 		return String.format(SHELL, EventHandler.connectedIP);
@@ -37,8 +38,14 @@ public class InterceptClient {
 				if(arg.equalsIgnoreCase("noansi")){
 					ANSI = false;
 				}
+				if(arg.equalsIgnoreCase("forceansi")) {
+					ANSI = true;
+				}
 				if(arg.equalsIgnoreCase("mute")){
 					MUTE = true;
+				}
+				if(arg.equalsIgnoreCase("ogg")) {
+					OGG = true;
 				}
 			}
 		}

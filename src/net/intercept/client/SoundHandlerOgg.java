@@ -7,12 +7,12 @@ import main.java.goxr3plus.javastreamplayer.stream.*;
 public class SoundHandlerOgg implements Sound{
 	
 	private StreamPlayer player;
-	//private boolean set;
+	private boolean set;
 	private String track;
 	
 	protected SoundHandlerOgg(){
 		try{
-			//set = false;
+			set = false;
 			track = "peace";
 			player = new StreamPlayer();
 			player.addStreamPlayerListener(new StreamPlayerListener(){
@@ -24,27 +24,41 @@ public class SoundHandlerOgg implements Sound{
 				@Override
 				public void statusUpdated(StreamPlayerEvent event) {
 					if(event.getPlayerStatus().equals(Status.STOPPED)){
-						if(track.equals("peace")){
-							track = "peace2";
+						if(!set) {
+							if(track.equals("peace")){
+								track = "peace2";
+							}
+							else if(track.equals("peace2")){
+								track = "peace";
+							}
+							else if(track.equals("breach")){
+								track = "breach_loop";
+							}
+							else if(track.equals("breach_loop")){
+								track = "breach";
+							}
 						}
-						else if(track.equals("peace2")){
-							track = "peace";
+						try {
+							set = false;
+							player.open(SoundHandler.getStream("/" + track + ".ogg"));
+							player.play();
 						}
-						else if(track.equals("breach")){
-							track = "breach_loop";
-						}
-						else if(track.equals("breach_loop")){
-							track = "breach";
+						catch(Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}});
 		}
-		catch(Exception e){}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void setTrack(String track) {
-		
+		this.track = track;
+		set = true;
+		player.stop();
 	}
 
 	@Override
@@ -53,6 +67,8 @@ public class SoundHandlerOgg implements Sound{
 			player.open(SoundHandler.getStream("/peace.ogg"));
 			player.play();
 		}
-		catch(Exception e){}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 }
