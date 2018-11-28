@@ -86,8 +86,7 @@ public class EventHandler {
 		}
 		else{
 			if(json.has("msg")){
-				msg = "\n" + json.getString("msg");
-				msg = ColorUtil.stripBubColor(msg);
+				msg = ColorUtil.stripBubColor(json.getString("msg"));
 			}
 		}
 		msg = msg.replace("\u200b", " ").replace("\t", " ");

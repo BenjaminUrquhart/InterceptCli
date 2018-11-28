@@ -115,9 +115,14 @@ public class InterceptClient {
 					System.out.print(shell());
 					continue;
 				}
-				json.put("cmd", line);
-				output.println(json);
-				output.flush();
+				if(line.equals("")){
+					System.out.print(shell());
+				}
+				else{
+					json.put("cmd", line);
+					output.println(json);
+					output.flush();
+				}
 			}
 		}
 		else{

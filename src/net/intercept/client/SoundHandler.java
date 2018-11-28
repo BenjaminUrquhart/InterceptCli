@@ -12,7 +12,7 @@ import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-public class SoundHandler{
+public class SoundHandler implements Sound{
 	
 	private boolean muted = false, set = false;
 	private AudioInputStream stream;
@@ -41,7 +41,7 @@ public class SoundHandler{
 			try {
 				set = false;
 				clip.close();
-				stream = AudioSystem.getAudioInputStream(new BufferedInputStream(getClass().getResourceAsStream("/" + track + ".wav")));
+				stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
 				clip.open(stream);
 				clip.start();
 			} catch (UnsupportedAudioFileException e) {
@@ -68,7 +68,10 @@ public class SoundHandler{
 			start();
 		}
 	}
-	protected void setTrack(String track){
+	public static BufferedInputStream getStream(String name){
+		return new BufferedInputStream(SoundHandler.class.getResourceAsStream(name));
+	}
+	public void setTrack(String track){
 		if(muted) return;
 		this.track = track;
 		this.set = true;
@@ -79,7 +82,7 @@ public class SoundHandler{
 			return;
 		}
 		try{
-			stream = AudioSystem.getAudioInputStream(new BufferedInputStream(getClass().getResourceAsStream("/" + track + ".wav")));
+			stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
 			clip.open(stream);
 			clip.start();
 		}
