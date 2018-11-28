@@ -59,7 +59,7 @@ public class SoundHandler implements Sound{
 		if(!InterceptClient.MUTE){
 			track = "peace";
 			try{
-				clip = AudioSystem.getClip();
+				clip = AudioSystem.getClip(null);
 				clip.addLineListener(listener);
 			}
 			catch(Exception e){
