@@ -40,7 +40,7 @@ public class SoundHandlerOgg implements Sound{
 						}
 						try {
 							set = false;
-							player.open(SoundHandler.getStream("/" + track + ".ogg"));
+							player.open(getStream("/" + track + ".ogg"));
 							player.play();
 						}
 						catch(Exception e) {
@@ -64,7 +64,7 @@ public class SoundHandlerOgg implements Sound{
 	@Override
 	public void start() {
 		try{
-			player.open(SoundHandler.getStream("/peace.ogg"));
+			player.open(getStream("/peace.ogg"));
 			player.play();
 		}
 		catch(Exception e){

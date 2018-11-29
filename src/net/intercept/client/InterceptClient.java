@@ -23,12 +23,7 @@ public class InterceptClient {
 	}
 	public static void main(String[] args) throws Exception {
 		//Reset ANSI on shutdown
-		Runtime.getRuntime().addShutdownHook(new Thread(){
-			@Override
-			public void run(){
-				System.out.println("\nlogout\u001b[0m");
-			}
-		});
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m")));
 		if(args.length > 0){
 			for(String arg : args){
 				if(arg.equalsIgnoreCase("local")){
@@ -91,8 +86,6 @@ public class InterceptClient {
 			}
 			if(!success){
 				System.out.println(json.getString("error"));
-				//System.out.println("Due to a flaw in the server side JSON processing, you must restart this client.");
-				//System.exit(0);
 			}
 		}
 		json.put("request", "connect");
@@ -104,12 +97,27 @@ public class InterceptClient {
 		json = new JSONObject(input.readLine());
 		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
 			ReceiveHandler listener = new ReceiveHandler(input);
+			if(json.has("player")){
+				JSONObject player = json.getJSONObject("player");
+				if(!player.getString("ip").equals(player.getString("conn"))){
+					JSONObject event = new JSONObject()
+							.put("msg", BubColor.BLUE + "You are connected to an external system." + BubColor.RESET)
+							.put("event", "connected")
+							.put("player", player);
+					listener.handle(event);
+				}
+				else{
+					System.out.print(shell());
+				}
+				
+			}
+			else{
+				System.out.print(shell());
+			}
 			listener.start();
 			String line;
 			json = new JSONObject();
 			json.put("request", "command");
-			System.out.println("Logged in and ready.");
-			System.out.print(shell());
 			while(true){
 				line = sc.nextLine();
 				if(line.equals("clear")){

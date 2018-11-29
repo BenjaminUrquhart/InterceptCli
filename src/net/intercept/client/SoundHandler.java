@@ -1,6 +1,5 @@
 package net.intercept.client;
 
-import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -67,9 +66,6 @@ public class SoundHandler implements Sound{
 			}
 			start();
 		}
-	}
-	public static BufferedInputStream getStream(String name){
-		return new BufferedInputStream(SoundHandler.class.getResourceAsStream(name));
 	}
 	public void setTrack(String track){
 		if(muted) return;

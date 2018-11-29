@@ -14,7 +14,9 @@ public class ReceiveHandler extends Thread{
 		this.reader = reader;
 		this.handler = new EventHandler();
 	}
-	
+	public void handle(JSONObject json){
+		this.handler.handleEvent(json);
+	}
 	@Override
 	public void run(){
 		try{
@@ -24,16 +26,16 @@ public class ReceiveHandler extends Thread{
 					if(InterceptClient.ANSI)
 					System.out.print(ColorUtil.RESET);
 				}
+				catch(ArrayIndexOutOfBoundsException e){
+					System.out.println(InterceptClient.shell());
+				}
+				catch(StringIndexOutOfBoundsException e){
+					System.out.println(InterceptClient.shell());
+				}
 				catch(JSONException e){
 					System.out.println("An error occured while parsing data:\n" + e.getMessage());
 				}
 			}
-		}
-		catch(ArrayIndexOutOfBoundsException e){
-			System.out.println();
-		}
-		catch(StringIndexOutOfBoundsException e){
-			System.out.println();
 		}
 		catch(NullPointerException e){
 			System.out.println("Connection to server dropped unexpectedly");
