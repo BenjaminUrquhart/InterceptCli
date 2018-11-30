@@ -100,24 +100,20 @@ public class InterceptClient {
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
 				if(!player.getString("ip").equals(player.getString("conn"))){
-					JSONObject event = new JSONObject()
-							.put("msg", BubColor.BLUE + "You are connected to an external system." + BubColor.RESET)
-							.put("event", "connected")
-							.put("player", player);
-					listener.handle(event);
-				}
-				else{
-					System.out.print(shell());
+					String msg = "You are connected to an external system.";
+					if(ANSI) {
+						msg = ColorUtil.CYAN + msg + ColorUtil.RESET;
+					}
+					EventHandler.connectedIP = player.getString("conn");
+					System.out.println(msg);
 				}
 				
-			}
-			else{
-				System.out.print(shell());
 			}
 			listener.start();
 			String line;
 			json = new JSONObject();
 			json.put("request", "command");
+			System.out.print(shell());
 			while(true){
 				line = sc.nextLine();
 				if(line.equals("clear")){
