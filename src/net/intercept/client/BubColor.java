@@ -2,27 +2,27 @@ package net.intercept.client;
 
 public enum BubColor {
 	
-	RESET(ANSI.SPLIT + "*"),
-	GRAY(ANSI.SPLIT + "W"),
-	WHITE(ANSI.SPLIT + "w"),
-	RED(ANSI.SPLIT + "R"),
-	LIGHT_RED(ANSI.SPLIT + "r"),
-	GREEN(ANSI.SPLIT + "G"),
-	LIGHT_GREEN(ANSI.SPLIT + "g"),
-	BLUE(ANSI.SPLIT + "B"),
-	LIGHT_BLUE(ANSI.SPLIT + "b"),
-	YELLOW(ANSI.SPLIT + "y"),
-	ORANGE(ANSI.SPLIT + "o"),
-	PINK(ANSI.SPLIT + "P"),
-	LIGHT_PINK(ANSI.SPLIT + "p"),
-	VIOLET(ANSI.SPLIT + "V"),
-	LIGHT_VIOLET(ANSI.SPLIT + "v"),
-	UNKNOWN(ANSI.SPLIT + "?");
+	RESET("*"),
+	GRAY("W"),
+	WHITE("w"),
+	RED("R"),
+	LIGHT_RED("r"),
+	GREEN("G"),
+	LIGHT_GREEN("g"),
+	BLUE("B"),
+	LIGHT_BLUE("b"),
+	YELLOW("y"),
+	ORANGE("o"),
+	PINK("P"),
+	LIGHT_PINK("p"),
+	VIOLET("V"),
+	LIGHT_VIOLET("v"),
+	RANDOM("?");
 	
 	private final String color;
 	
 	private BubColor(String color){
-		this.color = color;
+		this.color = ANSI.SPLIT + color;
 	}
 	@Override
 	public String toString(){
@@ -60,6 +60,8 @@ public enum BubColor {
 			return ANSI.YELLOW;
 		case RESET:
 			return ANSI.RESET_STR;
+		case RANDOM:
+			return ColorUtil.toANSI(values()[(int)(Math.random() * values().length)].toString());
 		default:
 			return "";
 		}

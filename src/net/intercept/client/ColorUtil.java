@@ -12,6 +12,6 @@ public class ColorUtil extends ANSI{
 		return text;
 	}
 	public static String replaceWeirdPeriod(String text) {
-		return text.replace(BubColor.UNKNOWN + ".", "");
+		return text.replace(BubColor.RANDOM + ".", "");
 	}
 }
