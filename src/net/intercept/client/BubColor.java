@@ -61,7 +61,7 @@ public enum BubColor {
 		case RESET:
 			return ANSI.RESET_STR;
 		case RANDOM:
-			return ColorUtil.toANSI(values()[(int)(Math.random() * values().length)].toString());
+			BubColor out = null; do {out = values()[(int)(Math.random()*values().length)];}while(out.equals(RANDOM)); return out.toANSI();
 		default:
 			return "";
 		}
