@@ -1,5 +1,7 @@
 package net.intercept.client;
 
+import java.util.Random;
+
 public enum BubColor {
 	
 	RESET("*"),
@@ -20,9 +22,11 @@ public enum BubColor {
 	RANDOM("?");
 	
 	private final String color;
+	private final Random rng;
 	
 	private BubColor(String color){
 		this.color = ANSI.SPLIT + color;
+		this.rng = new Random();
 	}
 	@Override
 	public String toString(){
@@ -61,7 +65,7 @@ public enum BubColor {
 		case RESET:
 			return ANSI.RESET_STR;
 		case RANDOM:
-			BubColor out = null; do {out = values()[(int)(Math.random()*values().length)];}while(out.equals(RANDOM)); return out.toANSI();
+			BubColor out = null; do {out = values()[rng.nextInt(values().length)];}while(out.equals(RANDOM)); return out.toANSI();
 		default:
 			return "";
 		}

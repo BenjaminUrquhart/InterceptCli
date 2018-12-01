@@ -17,4 +17,8 @@ public class ANSI {
 	public static final String CLEAR_SCREEN = "\u001b[2J";
 	public static final String RESET_CURSOR = "\u001b[1000D";
 	public static final String RESET_STR = RESET; //Backwards compatibility
+	
+	public static void setCursorPos(int line, int column) {
+		System.out.printf("\033[%d;%dH%s", line, column, RESET_CURSOR);
+	}
 }

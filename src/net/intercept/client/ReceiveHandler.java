@@ -10,9 +10,12 @@ public class ReceiveHandler extends Thread{
 	private BufferedReader reader;
 	private EventHandler handler;
 	
-	public ReceiveHandler(BufferedReader reader) throws Exception{
+	public ReceiveHandler(BufferedReader reader, double volume) throws Exception{
 		this.reader = reader;
-		this.handler = new EventHandler();
+		this.handler = new EventHandler(volume);
+	}
+	public Sound getSoundHandler() {
+		return this.handler.getSoundHandler();
 	}
 	public void handle(JSONObject json){
 		this.handler.handleEvent(json);

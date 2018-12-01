@@ -46,6 +46,7 @@ public class InterceptClient {
 		}
 		if(ANSI){
 			System.out.print(ColorUtil.CLEAR_SCREEN + ColorUtil.RESET);
+			ColorUtil.setCursorPos(0,0);
 		}
 		else{
 			System.out.println("ANSI disabled");
@@ -96,7 +97,11 @@ public class InterceptClient {
 		output.flush();
 		json = new JSONObject(input.readLine());
 		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
-			ReceiveHandler listener = new ReceiveHandler(input);
+			double volume = 1;
+			if(json.has("cfg")) {
+				volume = json.getJSONObject("cfg").getDouble("vol")/10.0;
+			}
+			ReceiveHandler listener = new ReceiveHandler(input, volume);
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
 				if(!player.getString("ip").equals(player.getString("conn"))){
@@ -107,26 +112,70 @@ public class InterceptClient {
 					EventHandler.connectedIP = player.getString("conn");
 					System.out.println(msg);
 				}
+				else {
+					EventHandler.connectedIP = "localhost";
+				}
 				
 			}
+			listener.handle(json);
 			listener.start();
+			json = new JSONObject().put("request", "command");
 			String line;
-			json = new JSONObject();
-			json.put("request", "command");
-			System.out.print(shell());
 			while(true){
 				line = sc.nextLine();
 				if(line.equals("clear")){
 					if(ANSI){
 						System.out.print(ColorUtil.CLEAR_SCREEN);
+						ColorUtil.setCursorPos(0,0);
 					}
 					else{
 						System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 					}
 					System.out.print(shell());
 					continue;
+				}/*
+				Apparently volume is handled server-side...
+				else if(line.startsWith("vol")) {
+					if(!line.trim().contains(" ")) {
+						System.out.println("Usage: vol [level (0.0-1.0)]");
+					}
+					else {
+						try {
+							volume = Double.parseDouble(line.split(" ")[1]);
+							if(volume > 10.0 || volume < 0.0) {
+								throw new NumberFormatException("Volume out of bounds, must be >= 0 and <= 10");
+							}
+							listener.getSoundHandler().setVolume(volume);
+							JSONObject vol = new JSONObject()
+									.put("request", "cfg")
+									.put("cfg", new JSONObject().put("vol", volume));
+							//System.out.println(vol);
+							output.println(vol);
+							output.flush();
+						}
+						catch(NumberFormatException e) {
+							System.out.println(e.toString() + "\nUsage: vol [level (0.0-10.0)]");
+						}
+					}
+					System.out.print(shell());
+				}*/
+				else if(line.startsWith("track")) {
+					if(!line.trim().contains(" ")) {
+						System.out.println("Usage: track <breach|peace|peace2|breach_loop>");
+					}
+					else {
+						try {
+							listener.getSoundHandler().setTrack(line.split(" ")[1].toLowerCase().trim());
+							System.out.println(ColorUtil.GREEN + "Now playing \"" + line.split(" ")[1].toLowerCase().trim() + "\"" + ColorUtil.RESET);
+						}
+						catch(Exception e) {
+							System.out.println("Failed to load track. Defaulting to \"peace\"");
+							listener.getSoundHandler().setTrack("peace");
+						}
+					}
+					System.out.print(shell());
 				}
-				if(line.equals("")){
+				else if(line.equals("")){
 					System.out.print(shell());
 				}
 				else{

@@ -6,6 +6,7 @@ import java.io.IOException;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineEvent.Type;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
@@ -15,6 +16,7 @@ public class SoundHandler implements Sound{
 	
 	private boolean muted = false, set = false;
 	private AudioInputStream stream;
+	private FloatControl volume;
 	private Clip clip = null;
 	private String track;
 	
@@ -54,17 +56,30 @@ public class SoundHandler implements Sound{
 		}
 	};
 	
-	protected SoundHandler(){
+	protected SoundHandler(double vol){
 		if(!InterceptClient.MUTE){
 			track = "peace";
 			try{
 				clip = AudioSystem.getClip(null);
 				clip.addLineListener(listener);
+				volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+				this.setVolume(vol);
 			}
+			catch(IllegalArgumentException e) {}
 			catch(Exception e){
+				e.printStackTrace();
 				muted = true;
 			}
 			start();
+		}
+	}
+	public void setVolume(double volume) {
+		if(this.volume != null) {
+			this.volume.setValue((float) (Math.log(volume) / Math.log(10.0) * 20.0));
+			System.out.printf("Volume: %s\n", (volume*100.0 + "%"));
+		}
+		else {
+			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.YELLOW + "Volume control not supported on this system." + ANSI.RESET);
 		}
 	}
 	public void setTrack(String track){
@@ -82,7 +97,7 @@ public class SoundHandler implements Sound{
 			clip.open(stream);
 			clip.start();
 		}
-		catch(FileNotFoundException e){
+		catch(FileNotFoundException | IllegalArgumentException e){
 			System.out.println(e + "\nSound disabled");
 			muted = true;
 		}
