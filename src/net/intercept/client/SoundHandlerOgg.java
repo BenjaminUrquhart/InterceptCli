@@ -53,15 +53,14 @@ public class SoundHandlerOgg implements Sound{
 			e.printStackTrace();
 		}
 	}
-
-	@Override
 	public void setTrack(String track) {
 		this.track = track;
 		set = true;
 		player.stop();
 	}
-
-	@Override
+	public String getTrack() {
+		return new String(track.toCharArray());
+	}
 	public void start() {
 		try{
 			player.open(getStream("/peace.ogg"));

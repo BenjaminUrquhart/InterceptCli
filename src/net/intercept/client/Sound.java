@@ -9,5 +9,6 @@ public interface Sound {
 	}
 	default void setVolume(double volume) {}
 	void setTrack(String track);
+	String getTrack();
 	void start();
 }

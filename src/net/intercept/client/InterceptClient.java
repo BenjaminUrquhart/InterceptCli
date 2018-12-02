@@ -162,11 +162,12 @@ public class InterceptClient {
 				else if(line.startsWith("track")) {
 					if(!line.trim().contains(" ")) {
 						System.out.println("Usage: track <breach|peace|peace2|breach_loop>");
+						System.out.printf("%sCurrect track: %s%s%s\n", ColorUtil.WHITE, ColorUtil.GREEN, listener.getSoundHandler().getTrack(), ColorUtil.RESET);
 					}
 					else {
 						try {
 							listener.getSoundHandler().setTrack(line.split(" ")[1].toLowerCase().trim());
-							System.out.println(ColorUtil.GREEN + "Now playing \"" + line.split(" ")[1].toLowerCase().trim() + "\"" + ColorUtil.RESET);
+							System.out.printf("%sNow playing: %s%s%s\n", ColorUtil.WHITE, ColorUtil.GREEN, listener.getSoundHandler().getTrack(), ColorUtil.RESET);
 						}
 						catch(Exception e) {
 							System.out.println("Failed to load track. Defaulting to \"peace\"");

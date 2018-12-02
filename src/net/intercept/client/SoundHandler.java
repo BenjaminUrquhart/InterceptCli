@@ -15,39 +15,28 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 public class SoundHandler implements Sound{
 	
 	private boolean muted = false, set = false;
-	private AudioInputStream stream;
+	private AudioInputStream stream, next;
 	private FloatControl volume;
 	private Clip clip = null;
 	private String track;
 	
 	private LineListener listener = (event) ->{
 		if(event.getType().equals(Type.STOP)){
-			if(!set){
-				if(track.equals("peace")){
-					track = "peace2";
-				}
-				else if(track.equals("peace2")){
-					track = "peace";
-				}
-				else if(track.equals("breach")){
-					track = "breach_loop";
-				}
-				else if(track.equals("breach_loop")){
-					track = "breach";
-				}
-			}
-			else{
-				clip.flush();
-			}
 			try {
+				if(!set){
+					track = getNext();
+					stream = next;
+				}
+				else {
+					clip.flush();
+					stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
+				}
 				set = false;
 				clip.close();
-				stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
 				clip.open(stream);
 				clip.start();
-			} catch (UnsupportedAudioFileException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
+				next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
+			} catch (UnsupportedAudioFileException | IOException e) {
 				e.printStackTrace();
 			} catch (LineUnavailableException e) {
 				e.printStackTrace();
@@ -88,12 +77,25 @@ public class SoundHandler implements Sound{
 		this.set = true;
 		this.clip.stop();
 	}
+	public String getTrack() {
+		return new String(track.toCharArray());
+	}
+	public String getNext() {
+		switch(track) {
+		case "peace": return "peace2";
+		case "peace2": return "peace";
+		case "breach": return "breach_loop";
+		case "breach_loop": return "breach";
+		default: return "peace";
+		}
+	}
 	public void start(){
 		if(muted || InterceptClient.MUTE){
 			return;
 		}
 		try{
 			stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
+			next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
 			clip.open(stream);
 			clip.start();
 		}
