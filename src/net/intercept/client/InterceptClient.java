@@ -164,6 +164,9 @@ public class InterceptClient {
 						System.out.println("Usage: track <breach|peace|peace2|breach_loop>");
 						System.out.printf("%sCurrect track: %s%s%s\n", ColorUtil.WHITE, ColorUtil.GREEN, listener.getSoundHandler().getTrack(), ColorUtil.RESET);
 					}
+					else if(MUTE) {
+						System.out.printf("%sCannot set a track when audio is disabled%s\n", ColorUtil.YELLOW, ColorUtil.RESET);
+					}
 					else {
 						try {
 							listener.getSoundHandler().setTrack(line.split(" ")[1].toLowerCase().trim());

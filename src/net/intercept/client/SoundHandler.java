@@ -47,7 +47,7 @@ public class SoundHandler implements Sound{
 	
 	protected SoundHandler(double vol){
 		if(!InterceptClient.MUTE){
-			track = "peace";
+			track = "None";
 			try{
 				clip = AudioSystem.getClip(null);
 				clip.addLineListener(listener);
@@ -55,8 +55,13 @@ public class SoundHandler implements Sound{
 				this.setVolume(vol);
 			}
 			catch(IllegalArgumentException e) {}
+			catch(NullPointerException e) {
+				InterceptClient.MUTE = true;
+				muted = true;
+			}
 			catch(Exception e){
 				e.printStackTrace();
+				InterceptClient.MUTE = true;
 				muted = true;
 			}
 			start();
@@ -72,7 +77,7 @@ public class SoundHandler implements Sound{
 		}
 	}
 	public void setTrack(String track){
-		if(muted) return;
+		if(muted || clip == null) return;
 		this.track = track;
 		this.set = true;
 		this.clip.stop();
@@ -94,6 +99,7 @@ public class SoundHandler implements Sound{
 			return;
 		}
 		try{
+			track = "peace";
 			stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
 			next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
 			clip.open(stream);
@@ -101,10 +107,13 @@ public class SoundHandler implements Sound{
 		}
 		catch(FileNotFoundException | IllegalArgumentException e){
 			System.out.println(e + "\nSound disabled");
+			InterceptClient.MUTE = true;
 			muted = true;
 		}
 		catch(Exception e){
 			e.printStackTrace();
+			InterceptClient.MUTE = true;
+			muted = true;
 		}
 	}
 }
