@@ -66,6 +66,7 @@ public class InterceptClient {
 		System.out.println("Client ID: " + json.getString("client_id"));
 		System.out.println("Client type: " + json.getString("client_type"));
 		System.out.println("Date: " + new Date(json.getLong("date")));
+		System.out.println("OS: " + System.getProperty("os.name"));
 		System.out.println("Ready to log in.");
 		boolean success = false;
 		while(!success){
@@ -164,8 +165,9 @@ public class InterceptClient {
 						System.out.println("Usage: track <breach|peace|peace2|breach_loop>");
 						System.out.printf("%sCurrect track: %s%s%s\n", ColorUtil.WHITE, ColorUtil.GREEN, listener.getSoundHandler().getTrack(), ColorUtil.RESET);
 					}
-					else if(MUTE) {
+					else if(MUTE || listener.getSoundHandler().getTrack().equals("None")) {
 						System.out.printf("%sCannot set a track when audio is disabled%s\n", ColorUtil.YELLOW, ColorUtil.RESET);
+						MUTE = true;
 					}
 					else {
 						try {

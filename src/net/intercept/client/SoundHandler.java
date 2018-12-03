@@ -46,8 +46,8 @@ public class SoundHandler implements Sound{
 	};
 	
 	protected SoundHandler(double vol){
+		track = "None";
 		if(!InterceptClient.MUTE){
-			track = "None";
 			try{
 				clip = AudioSystem.getClip(null);
 				clip.addLineListener(listener);
@@ -81,7 +81,7 @@ public class SoundHandler implements Sound{
 		this.clip.stop();
 	}
 	public String getTrack() {
-		return new String(track.toCharArray());
+		return track;
 	}
 	public String getNext() {
 		switch(track) {
@@ -93,9 +93,7 @@ public class SoundHandler implements Sound{
 		}
 	}
 	public void start(){
-		if(InterceptClient.MUTE || clip == null){
-			return;
-		}
+		if(InterceptClient.MUTE || clip == null) return;
 		try{
 			track = "peace";
 			stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
