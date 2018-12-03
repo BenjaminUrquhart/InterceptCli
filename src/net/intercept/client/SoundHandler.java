@@ -14,9 +14,9 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class SoundHandler implements Sound{
 	
-	private boolean muted = false, set = false;
 	private AudioInputStream stream, next;
 	private FloatControl volume;
+	private boolean set = false;
 	private Clip clip = null;
 	private String track;
 	
@@ -40,7 +40,7 @@ public class SoundHandler implements Sound{
 				e.printStackTrace();
 			} catch (LineUnavailableException e) {
 				e.printStackTrace();
-				muted = true;
+				InterceptClient.MUTE = true;
 			}
 		}
 	};
@@ -57,12 +57,10 @@ public class SoundHandler implements Sound{
 			catch(IllegalArgumentException e) {}
 			catch(NullPointerException e) {
 				InterceptClient.MUTE = true;
-				muted = true;
 			}
 			catch(Exception e){
 				e.printStackTrace();
 				InterceptClient.MUTE = true;
-				muted = true;
 			}
 			start();
 		}
@@ -77,7 +75,7 @@ public class SoundHandler implements Sound{
 		}
 	}
 	public void setTrack(String track){
-		if(muted || clip == null) return;
+		if(InterceptClient.MUTE || clip == null) return;
 		this.track = track;
 		this.set = true;
 		this.clip.stop();
@@ -95,7 +93,7 @@ public class SoundHandler implements Sound{
 		}
 	}
 	public void start(){
-		if(muted || InterceptClient.MUTE){
+		if(InterceptClient.MUTE || clip == null){
 			return;
 		}
 		try{
@@ -108,12 +106,10 @@ public class SoundHandler implements Sound{
 		catch(FileNotFoundException | IllegalArgumentException e){
 			System.out.println(e + "\nSound disabled");
 			InterceptClient.MUTE = true;
-			muted = true;
 		}
 		catch(Exception e){
 			e.printStackTrace();
 			InterceptClient.MUTE = true;
-			muted = true;
 		}
 	}
 }
