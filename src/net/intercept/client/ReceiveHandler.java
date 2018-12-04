@@ -26,7 +26,6 @@ public class ReceiveHandler extends Thread{
 			while(true){
 				try{
 					handler.handleEvent(new JSONObject(reader.readLine()));
-					if(InterceptClient.ANSI)
 					System.out.print(ColorUtil.RESET);
 				}
 				catch(ArrayIndexOutOfBoundsException e){

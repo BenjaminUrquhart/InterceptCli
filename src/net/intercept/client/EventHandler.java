@@ -94,14 +94,7 @@ public class EventHandler {
 			panic = false;
 			sound.setTrack("peace2");
 		}
-		if(InterceptClient.ANSI){
-			System.out.print(ColorUtil.RESET + ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR);
-		}
-		else{
-			if(json.has("msg")){
-				msg = ColorUtil.stripBubColor(json.getString("msg"));
-			}
-		}
+		System.out.print(ColorUtil.RESET + ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR);
 		msg = msg.replace("\u200b", " ").replace("\t", " ").replace("\u00C2", "");
 		System.out.println(msg);
 		System.out.print(InterceptClient.shell());

@@ -14,7 +14,7 @@ public class InterceptClient {
 	
 	public static final String SHELL = "root@%s~# ";
 	
-	public static boolean ANSI = !System.getProperty("os.name").startsWith("Windows");
+	//public static boolean ANSI = !System.getProperty("os.name").startsWith("Windows");
 	public static boolean MUTE = false, OGG = false, DEBUG = false;
 	
 	public static String shell(){
@@ -26,18 +26,16 @@ public class InterceptClient {
 		}
 	}
 	public static void main(String[] args) throws Exception {
+		boolean triedToANSI = false;
 		//Reset ANSI on shutdown
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m")));
 		if(args.length > 0){
 			for(String arg : args){
+				if(arg.equalsIgnoreCase("noansi")) {
+					triedToANSI = true;
+				}
 				if(arg.equalsIgnoreCase("local")){
 					IP = "127.0.0.1";
-				}
-				if(arg.equalsIgnoreCase("noansi")){
-					ANSI = false;
-				}
-				if(arg.equalsIgnoreCase("forceansi")) {
-					ANSI = true;
 				}
 				if(arg.equalsIgnoreCase("mute")){
 					MUTE = true;
@@ -50,12 +48,16 @@ public class InterceptClient {
 				}
 			}
 		}
-		if(ANSI){
-			System.out.print(ColorUtil.CLEAR_SCREEN + ColorUtil.RESET);
-			ColorUtil.setCursorPos(0,0);
-		}
-		else{
-			System.out.println("ANSI disabled");
+		System.out.print(ColorUtil.CLEAR_SCREEN + ColorUtil.RESET);
+		ColorUtil.setCursorPos(0,0);
+		if(triedToANSI) {
+			System.out.println(ColorUtil.RED
+					+ "#########################################"
+					+ "\n\n"
+					+ "ANSI is always enabled now, deal with it."
+					+ "\n\n"
+					+ "#########################################" 
+					+ ColorUtil.RESET);
 		}
 		if(MUTE){
 			System.out.println("Sound disabled");
@@ -117,10 +119,7 @@ public class InterceptClient {
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
 				if(!player.getString("ip").equals(player.getString("conn"))){
-					String msg = "You are connected to an external system.";
-					if(ANSI) {
-						msg = ColorUtil.CYAN + msg + ColorUtil.RESET;
-					}
+					String msg = ColorUtil.CYAN + "You are connected to an external system." + ColorUtil.RESET;
 					EventHandler.connectedIP = player.getString("conn");
 					System.out.println(msg);
 				}
@@ -136,13 +135,8 @@ public class InterceptClient {
 			while(true){
 				line = sc.nextLine();
 				if(line.equals("clear")){
-					if(ANSI){
-						System.out.print(ColorUtil.CLEAR_SCREEN);
-						ColorUtil.setCursorPos(0,0);
-					}
-					else{
-						System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-					}
+					System.out.print(ColorUtil.CLEAR_SCREEN);
+					ColorUtil.setCursorPos(0,0);
 					System.out.print(shell());
 					continue;
 				}/*
