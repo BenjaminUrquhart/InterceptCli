@@ -15,11 +15,15 @@ public class InterceptClient {
 	public static final String SHELL = "root@%s~# ";
 	
 	public static boolean ANSI = !System.getProperty("os.name").startsWith("Windows");
-	public static boolean MUTE = false;
-	public static boolean OGG = false;
+	public static boolean MUTE = false, OGG = false, DEBUG = false;
 	
 	public static String shell(){
 		return String.format(SHELL, EventHandler.connectedIP);
+	}
+	public static void debug(Object text) {
+		if(DEBUG) {
+			System.out.printf("%s%s%s[DEBUG] %s%s\n%s", ColorUtil.RESET_CURSOR, ColorUtil.CLEAR_LINE, ColorUtil.CYAN, String.valueOf(text), ColorUtil.RESET, shell());
+		}
 	}
 	public static void main(String[] args) throws Exception {
 		//Reset ANSI on shutdown
@@ -28,7 +32,6 @@ public class InterceptClient {
 			for(String arg : args){
 				if(arg.equalsIgnoreCase("local")){
 					IP = "127.0.0.1";
-					System.out.println("Local mode enabled");
 				}
 				if(arg.equalsIgnoreCase("noansi")){
 					ANSI = false;
@@ -41,6 +44,9 @@ public class InterceptClient {
 				}
 				if(arg.equalsIgnoreCase("ogg")) {
 					OGG = true;
+				}
+				if(arg.equalsIgnoreCase("debug")) {
+					DEBUG = true;
 				}
 			}
 		}
@@ -63,10 +69,12 @@ public class InterceptClient {
 		JSONObject json = new JSONObject(input.readLine());
 		JSONObject login = new JSONObject();
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Client ID: " + json.getString("client_id"));
-		System.out.println("Client type: " + json.getString("client_type"));
-		System.out.println("Date: " + new Date(json.getLong("date")));
-		System.out.println("OS: " + System.getProperty("os.name"));
+		if(DEBUG) {
+			System.out.println(ColorUtil.CYAN + "Client ID: " + json.getString("client_id"));
+			System.out.println("Client type: " + json.getString("client_type"));
+			System.out.println("Date: " + new Date(json.getLong("date")));
+			System.out.println("OS: " + System.getProperty("os.name") + ColorUtil.RESET);
+		}
 		System.out.println("Ready to log in.");
 		boolean success = false;
 		while(!success){
@@ -82,7 +90,9 @@ public class InterceptClient {
 			json.put("login", login);
 			output.println(json);
 			output.flush();
+			debug(json);
 			json = new JSONObject(input.readLine());
+			debug(json);
 			if(json.has("success")){
 				success = json.getBoolean("success");
 			}
@@ -96,6 +106,7 @@ public class InterceptClient {
 		json.remove("success");
 		output.println(json);
 		output.flush();
+		debug(json);
 		json = new JSONObject(input.readLine());
 		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
 			double volume = 1;
@@ -188,6 +199,7 @@ public class InterceptClient {
 					json.put("cmd", line);
 					output.println(json);
 					output.flush();
+					debug(json);
 				}
 			}
 		}

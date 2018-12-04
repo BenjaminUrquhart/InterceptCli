@@ -16,6 +16,7 @@ public class EventHandler {
 		return sound;
 	}
 	public void handleEvent(JSONObject json){
+		InterceptClient.debug(json);
 		if(!json.has("event")){
 			System.out.println(
 					ColorUtil.RED
