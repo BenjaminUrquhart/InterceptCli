@@ -1,6 +1,7 @@
 package net.intercept.client;
 
 import java.io.BufferedReader;
+import java.net.SocketException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,9 +40,11 @@ public class ReceiveHandler extends Thread{
 				}
 			}
 		}
-		catch(NullPointerException e){
-			System.out.println("Connection to server dropped unexpectedly");
-			System.exit(0);
+		catch(NullPointerException | SocketException e){
+			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.YELLOW + "Connection to server dropped unexpectedly");
+			
+			InterceptClient.reconnect();
+			return;
 		}
 		catch(Exception e){
 			e.printStackTrace();

@@ -1,6 +1,7 @@
 package net.intercept.client;
 
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
 import java.io.*;
@@ -10,12 +11,16 @@ import org.json.JSONObject;
 public class InterceptClient {
 
 	private static String IP = "209.97.136.54";
+	private static String TOKEN = null;
 	private static final int PORT = 13373;
 	
 	public static final String SHELL = "root@%s~# ";
+	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false;
 	
-	//public static boolean ANSI = !System.getProperty("os.name").startsWith("Windows");
-	public static boolean MUTE = false, OGG = false, DEBUG = false;
+	private static Socket conn;
+	private static BufferedReader input;
+	private static PrintWriter output;
+	private static ReceiveHandler listener;
 	
 	public static String shell(){
 		return String.format(SHELL, EventHandler.connectedIP);
@@ -23,6 +28,49 @@ public class InterceptClient {
 	public static void debug(Object text) {
 		if(DEBUG) {
 			System.out.printf("%s%s%s[DEBUG] %s%s\n%s", ColorUtil.RESET_CURSOR, ColorUtil.CLEAR_LINE, ColorUtil.CYAN, String.valueOf(text), ColorUtil.RESET, shell());
+		}
+	}
+	public static void reconnect() {
+		RECONNECTING = true;
+		int tries = 0;
+		boolean prevDebug = DEBUG;
+		DEBUG = true;
+		JSONObject response, json = new JSONObject()
+				.put("request", "connect")
+				.put("token", TOKEN);
+		while(true) {
+			try {
+				if(tries == 10) {
+					debug(ColorUtil.RED + "Failed to reconnect.");
+					System.exit(1);
+				}
+				debug("Attempting to reconnect... (" + (tries+1) + "/10)");
+				conn = new Socket(IP, PORT);
+				input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				output = new PrintWriter(conn.getOutputStream());
+				input.readLine();
+				output.println(json);
+				output.flush();
+				response = new JSONObject(input.readLine());
+				if((response.has("sucess") && response.getBoolean("sucess")) || (response.has("success") && response.getBoolean("success"))) {
+					debug(ColorUtil.GREEN + "Reconnected");
+					RECONNECTING = false;
+					listener = new ReceiveHandler(input, 0.0);
+					listener.start();
+					DEBUG = prevDebug;
+					return;
+				}
+				else {
+					throw new IllegalArgumentException("Got bad response from server: " + response);
+				}
+			}
+			catch(Exception e){
+				debug(ColorUtil.YELLOW + e);
+				Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(ColorUtil.YELLOW + trace));
+				tries++;
+				debug("Waiting " + tries + " second(s) before next attempt.");
+				try {Thread.sleep(1000*tries);}catch(Exception exec) {}
+			}
 		}
 	}
 	public static void main(String[] args) throws Exception {
@@ -52,11 +100,11 @@ public class InterceptClient {
 		ColorUtil.setCursorPos(0,0);
 		if(triedToANSI) {
 			System.out.println(ColorUtil.RED
-					+ "#########################################"
-					+ "\n\n"
-					+ "ANSI is always enabled now, deal with it."
-					+ "\n\n"
-					+ "#########################################" 
+					+ "#############################################\n"
+					+ "#                                           #\n"
+					+ "# ANSI is always enabled now, deal with it. #\n"
+					+ "#                                           #\n"
+					+ "#############################################\n" 
 					+ ColorUtil.RESET);
 		}
 		if(MUTE){
@@ -65,18 +113,16 @@ public class InterceptClient {
 		if(IP.equals("127.0.0.1")){
 			System.out.println("Local mode enabled");
 		}
-		Socket conn = new Socket(IP, PORT);
-		BufferedReader input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		PrintWriter output = new PrintWriter(conn.getOutputStream());
+		conn = new Socket(IP, PORT);
+		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		output = new PrintWriter(conn.getOutputStream());
 		JSONObject json = new JSONObject(input.readLine());
 		JSONObject login = new JSONObject();
 		Scanner sc = new Scanner(System.in);
-		if(DEBUG) {
-			System.out.println(ColorUtil.CYAN + "Client ID: " + json.getString("client_id"));
-			System.out.println("Client type: " + json.getString("client_type"));
-			System.out.println("Date: " + new Date(json.getLong("date")));
-			System.out.println("OS: " + System.getProperty("os.name") + ColorUtil.RESET);
-		}
+		debug("Client ID: " + json.getString("client_id"));
+		debug("Client type: " + json.getString("client_type"));
+		debug("Date: " + new Date(json.getLong("date")));
+		debug("OS: " + System.getProperty("os.name"));
 		System.out.println("Ready to log in.");
 		boolean success = false;
 		while(!success){
@@ -92,9 +138,9 @@ public class InterceptClient {
 			json.put("login", login);
 			output.println(json);
 			output.flush();
-			debug(json);
+			debug(json.toString().replace(login.getString("password"), "[CENSORED]"));
 			json = new JSONObject(input.readLine());
-			debug(json);
+			debug(json.has("token") ? json.toString().replace(json.getString("token"), "[CENSORED]") : json);
 			if(json.has("success")){
 				success = json.getBoolean("success");
 			}
@@ -106,16 +152,17 @@ public class InterceptClient {
 		json.remove("cfg");
 		json.remove("event");
 		json.remove("success");
+		TOKEN = json.getString("token");
 		output.println(json);
 		output.flush();
-		debug(json);
+		debug(json.toString().replace(json.getString("token"), "[CENSORED]"));
 		json = new JSONObject(input.readLine());
 		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
 			double volume = 1;
 			if(json.has("cfg")) {
 				volume = json.getJSONObject("cfg").getDouble("vol")/10.0;
 			}
-			ReceiveHandler listener = new ReceiveHandler(input, volume);
+			listener = new ReceiveHandler(input, volume);
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
 				if(!player.getString("ip").equals(player.getString("conn"))){
@@ -139,32 +186,7 @@ public class InterceptClient {
 					ColorUtil.setCursorPos(0,0);
 					System.out.print(shell());
 					continue;
-				}/*
-				Apparently volume is handled server-side...
-				else if(line.startsWith("vol")) {
-					if(!line.trim().contains(" ")) {
-						System.out.println("Usage: vol [level (0.0-1.0)]");
-					}
-					else {
-						try {
-							volume = Double.parseDouble(line.split(" ")[1]);
-							if(volume > 10.0 || volume < 0.0) {
-								throw new NumberFormatException("Volume out of bounds, must be >= 0 and <= 10");
-							}
-							listener.getSoundHandler().setVolume(volume);
-							JSONObject vol = new JSONObject()
-									.put("request", "cfg")
-									.put("cfg", new JSONObject().put("vol", volume));
-							//System.out.println(vol);
-							output.println(vol);
-							output.flush();
-						}
-						catch(NumberFormatException e) {
-							System.out.println(e.toString() + "\nUsage: vol [level (0.0-10.0)]");
-						}
-					}
-					System.out.print(shell());
-				}*/
+				}
 				else if(line.startsWith("track")) {
 					if(!line.trim().contains(" ")) {
 						System.out.println("Usage: track <breach|peace|peace2|breach_loop>");
@@ -186,13 +208,25 @@ public class InterceptClient {
 					}
 					System.out.print(shell());
 				}
-				else if(line.equals("")){
+				else if(line.trim().equals("")){
 					System.out.print(shell());
 				}
 				else{
 					json.put("cmd", line);
-					output.println(json);
-					output.flush();
+					try {
+						output.println(json);
+						output.flush();
+					}
+					catch(Exception e) {
+						if(RECONNECTING) {
+							while(RECONNECTING) {}
+						}
+						else {
+							reconnect();
+						}
+						output.println(json);
+						output.flush();
+					}
 					debug(json);
 				}
 			}

@@ -5,12 +5,14 @@ import org.json.JSONObject;
 public class EventHandler {
 
 	public static String connectedIP = "system";
-	private Sound sound;
+	private static Sound sound;
 	private boolean panic;
 	
 	public EventHandler(double volume) {
-		this.sound = InterceptClient.OGG ? new SoundHandlerOgg() : new SoundHandler(volume);
-		this.panic = false;
+		if(sound == null) {
+			sound = InterceptClient.OGG ? new SoundHandlerOgg() : new SoundHandler(volume);
+			this.panic = false;
+		}
 	}
 	public Sound getSoundHandler() {
 		return sound;
