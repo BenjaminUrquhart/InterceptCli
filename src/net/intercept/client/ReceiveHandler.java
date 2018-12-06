@@ -2,6 +2,7 @@ package net.intercept.client;
 
 import java.io.BufferedReader;
 import java.net.SocketException;
+import java.util.Arrays;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,6 +15,7 @@ public class ReceiveHandler extends Thread{
 	public ReceiveHandler(BufferedReader reader, double volume) throws Exception{
 		this.reader = reader;
 		this.handler = new EventHandler(volume);
+		this.setName("Intercept Receive Handler");
 	}
 	public Sound getSoundHandler() {
 		return this.handler.getSoundHandler();
@@ -41,8 +43,9 @@ public class ReceiveHandler extends Thread{
 			}
 		}
 		catch(NullPointerException | SocketException e){
+			InterceptClient.debug(e);
+			Arrays.stream(e.getStackTrace()).forEach((trace) -> InterceptClient.debug(ANSI.YELLOW + trace));
 			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.YELLOW + "Connection to server dropped unexpectedly");
-			
 			InterceptClient.reconnect();
 			return;
 		}
