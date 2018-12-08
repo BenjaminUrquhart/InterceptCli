@@ -41,9 +41,17 @@ public class SoundHandler implements Sound{
 				InterceptClient.debug("Now playing: " + ANSI.GREEN + track);
 				next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
 			} catch (UnsupportedAudioFileException | IOException e) {
-				e.printStackTrace();
+				try{
+					clip.close();
+				}
+				catch(Exception exec) {
+					Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+				}
+				track = "None";
+				InterceptClient.MUTE = true;
+				Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
 			} catch (LineUnavailableException e) {
-				e.printStackTrace();
+				InterceptClient.debug(e.toString());
 				InterceptClient.MUTE = true;
 			}
 		}

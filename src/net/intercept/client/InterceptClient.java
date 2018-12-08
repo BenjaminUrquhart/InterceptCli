@@ -33,6 +33,13 @@ public class InterceptClient {
 			System.out.printf("%s%s%s[DEBUG] %s%s\n%s", ColorUtil.RESET_CURSOR, ColorUtil.CLEAR_LINE, ColorUtil.CYAN, String.valueOf(text), ColorUtil.RESET, shell());
 		}
 	}
+	private static String pad(String in) {
+		int limit = 120 + (in.length() - in.replaceAll("\u001b\\[....m", "").length());
+		while(in.length() < limit) {
+			in += " ";
+		}
+		return in;
+	}
 	public static void reconnect() {
 		int tries = 0;
 		boolean prevDebug = DEBUG;
@@ -44,10 +51,6 @@ public class InterceptClient {
 				.put("token", TOKEN);
 		while(true) {
 			try {
-				if(tries == 10) {
-					debug(ColorUtil.RED + "Failed to reconnect.");
-					System.exit(1);
-				}
 				debug("Attempting to reconnect... (" + (tries+1) + "/10)");
 				conn = new Socket(IP, PORT);
 				input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -57,12 +60,12 @@ public class InterceptClient {
 				output.flush();
 				response = new JSONObject(input.readLine());
 				if((response.has("sucess") && response.getBoolean("sucess")) || (response.has("success") && response.getBoolean("success"))) {
+					showShell = true;
 					debug(ColorUtil.GREEN + "Reconnected");
 					RECONNECTING = false;
 					listener = new ReceiveHandler(input, 0.0);
 					listener.start();
 					DEBUG = prevDebug;
-					showShell = true;
 					return;
 				}
 				else {
@@ -72,6 +75,10 @@ public class InterceptClient {
 			catch(Exception e){
 				debug(ColorUtil.YELLOW + e);
 				Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(ColorUtil.YELLOW + trace));
+				if(tries == 10) {
+					debug(ColorUtil.RED + "Failed to reconnect.");
+					System.exit(1);
+				}
 				tries++;
 				debug("Waiting " + tries + " second(s) before next attempt.");
 				try {Thread.sleep(1000*tries);}catch(Exception exec) {}
@@ -82,6 +89,14 @@ public class InterceptClient {
 		boolean triedToANSI = false;
 		//Reset ANSI on shutdown
 		Thread.currentThread().setName("Intercept Main Loop");
+		Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
+			boolean oldDebug = DEBUG;
+			DEBUG = true;
+			debug(ColorUtil.RED + "An exception was thrown in the thread " + ColorUtil.YELLOW + thread.getName() + ":");
+			debug(ColorUtil.RED + e.toString());
+			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(ColorUtil.RED + "at " + element));
+			DEBUG = oldDebug;
+		});
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m")));
 		if(args.length > 0){
 			for(String arg : args){
@@ -129,38 +144,33 @@ public class InterceptClient {
 		debug("Client type: " + json.getString("client_type"));
 		debug("Date: " + new Date(json.getLong("date")));
 		debug("OS: " + System.getProperty("os.name"));
-		System.out.print("Login/Register: ");
+		System.out.print(ColorUtil.GREEN + "Login/Register: ");
 		boolean reg = sc.nextLine().toLowerCase().trim().equals("register");
 		boolean success = false;
-		if(reg) {
-			System.out.println("Creating a new account...");
-		}
-		else {
-			System.out.println("Logging in...");
-		}
+		System.out.println(reg ? "Creating a new account..." : "Logging in...");
 		while(!success){
 			json = new JSONObject();
 			auth = new JSONObject();
 			json.put("request", "auth");
 			System.out.print("Username: ");
 			auth.put("username", sc.nextLine());
-			if(System.console() == null){
-				System.out.print("Password: ");
-			}
+			if(System.console() == null){System.out.print("Password: ");}
 			auth.put("password", System.console() == null ? sc.nextLine() : new String(System.console().readPassword("Password: ")));
 			if(reg) {
-				if(System.console() == null){
-					System.out.print("Retype password: ");
-				}
+				if(System.console() == null){System.out.print("Retype password: ");}
 				if(!auth.getString("password").equals(System.console() == null ? sc.nextLine() : new String(System.console().readPassword("Retype password: ")))) {
 					System.out.println("Passwords do not match");
 					continue;
 				}
 			}
+			if(auth.getString("password").isEmpty()) {
+				System.out.println("No password provided");
+				continue;
+			}
 			json.put(reg ? "register" : "login", auth);
 			output.println(json);
 			output.flush();
-			debug(json.toString().replace(auth.getString("password").equals("") ? "\"\"" : auth.getString("password"), "[CENSORED]"));
+			debug(json.toString().replace(auth.getString("password"), "[CENSORED]"));
 			json = new JSONObject(input.readLine());
 			debug(json.has("token") ? json.toString().replace(json.getString("token"), "[CENSORED]") : json);
 			if(json.has("success")){
@@ -170,6 +180,7 @@ public class InterceptClient {
 				System.out.println(json.getString("error"));
 			}
 		}
+		auth.remove("password");
 		json.put("request", "connect");
 		json.remove("cfg");
 		json.remove("event");
@@ -184,9 +195,13 @@ public class InterceptClient {
 			if(json.has("cfg")) {
 				volume = json.getJSONObject("cfg").getDouble("vol")/10.0;
 			}
+			output.println(new JSONObject().put("request", "command").put("cmd", "pass -l see"));
+			output.flush();
+			String ip = null, pass = new JSONObject(input.readLine()).getString("msg");
 			listener = new ReceiveHandler(input, volume);
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
+				ip = player.getString("ip");
 				if(!player.getString("ip").equals(player.getString("conn"))){
 					String msg = ColorUtil.CYAN + "You are connected to an external system." + ColorUtil.RESET;
 					EventHandler.connectedIP = player.getString("conn");
@@ -197,6 +212,7 @@ public class InterceptClient {
 				}
 				
 			}
+			debug("Self: " + ip + " " + pass);
 			showShell = true;
 			listener.handle(json);
 			listener.start();
@@ -238,25 +254,30 @@ public class InterceptClient {
 					if(DEBUG) {
 						Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
 						traces.forEach((thread, trace) -> {
-							debug(String.format("%sThread: %s%s%s - ID: %s%d%s - State: %s%s%s - Group: %s%s", 
-									ColorUtil.YELLOW, 
+							debug("----------------------------------------------------------------------------------------------------------------------- #");
+							debug(pad(
+									String.format("%sThread: %s%s%s - ID: %s%d%s - State: %s%s%s - Group: %s%s", 
+									ColorUtil.BLUE, 
 									ColorUtil.GREEN, 
 									thread.getName(),
-									ColorUtil.YELLOW, 
+									ColorUtil.BLUE, 
 									ColorUtil.GREEN,
 									thread.getId(),
-									ColorUtil.YELLOW, 
+									ColorUtil.BLUE, 
 									ColorUtil.GREEN, 
 									String.valueOf(thread.getState()), 
-									ColorUtil.YELLOW, 
+									ColorUtil.BLUE, 
 									ColorUtil.GREEN, 
-									String.valueOf(thread.getThreadGroup())));
+									String.valueOf(thread.getThreadGroup())))
+									+ ColorUtil.CYAN + "#");
+							
 							if(trace.length == 0) {
-								debug(ColorUtil.YELLOW + "(no trace available)");
+								debug(pad(ColorUtil.YELLOW + "(no trace available)") + ColorUtil.CYAN + "#");
 								return;
 							}
-							Arrays.stream(trace).forEach((element) -> debug(ColorUtil.YELLOW + element));
+							Arrays.stream(trace).forEach((element) -> debug(pad(ColorUtil.YELLOW + element) + ColorUtil.CYAN + "#"));
 						});
+						debug("----------------------------------------------------------------------------------------------------------------------- #");
 					}
 					else {
 						System.out.println(ColorUtil.YELLOW + "Please enable debug mode first");
@@ -268,6 +289,12 @@ public class InterceptClient {
 					System.out.print(shell());
 				}
 				else{
+					if(line.trim().matches("software transfer (\\d+) self")) {
+						line = line.replace("self", ip + " " + pass);
+					}
+					else if(line.trim().matches("bits transfer self (\\d+)")) {
+						line = line.replace("self", auth.getString("username"));
+					}
 					json.put("cmd", line);
 					try {
 						output.println(json);
