@@ -193,7 +193,7 @@ public class InterceptClient {
 		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
 			double volume = 1;
 			if(json.has("cfg")) {
-				volume = json.getJSONObject("cfg").getDouble("vol")/10.0;
+				volume = json.getJSONObject("cfg").getDouble("vol");
 			}
 			output.println(new JSONObject().put("request", "command").put("cmd", "pass -l see"));
 			output.flush();
@@ -281,6 +281,7 @@ public class InterceptClient {
 					}
 					else {
 						System.out.println(ColorUtil.YELLOW + "Please enable debug mode first");
+						System.out.println(shell());
 					}
 				}
 				else if(line.trim().equals("debug")) {

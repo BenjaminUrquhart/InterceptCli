@@ -61,7 +61,7 @@ public class SoundHandlerOgg implements Sound{
 	public String getTrack() {
 		return new String(track.toCharArray());
 	}
-	public void start() {
+	public void start(double vol) {
 		try{
 			player.open(getStream("/peace.ogg"));
 			player.play();

@@ -61,45 +61,7 @@ public class SoundHandler implements Sound{
 		track = "None";
 		if(!InterceptClient.MUTE){
 			InterceptClient.debug("Starting sound handler...");
-			try{
-				Info mixer = null;
-				Info[] mixers = AudioSystem.getMixerInfo();
-				InterceptClient.debug("Mixers: ");
-				Arrays.stream(mixers).forEach((info) -> InterceptClient.debug(ANSI.YELLOW + info));
-				for(Info info : mixers) {
-					if(AudioSystem.getMixer(info).isControlSupported(FloatControl.Type.VOLUME) || AudioSystem.getMixer(info).isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-						mixer = info;
-						break;
-					}
-				}
-				InterceptClient.debug("Selected mixer: " + ANSI.GREEN + mixer);
-				clip = AudioSystem.getClip(mixer);
-				InterceptClient.debug("Clip: " + ANSI.YELLOW + clip);
-				InterceptClient.debug("Line: " + ANSI.YELLOW + clip.getLineInfo());
-				InterceptClient.debug("Controls: " + ANSI.YELLOW + Arrays.toString(clip.getControls()));
-				clip.addLineListener(listener);
-				try {
-					volume = (FloatControl) clip.getControl(FloatControl.Type.VOLUME);
-				}
-				catch(IllegalArgumentException e) {
-					InterceptClient.debug(e);
-					InterceptClient.debug("Control type " + ANSI.GREEN + "Volume" + ANSI.CYAN + " unsupported, trying " + ANSI.GREEN + "Master Gain...");
-					gain = true;
-					try {
-						volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-					}
-					catch(IllegalArgumentException exec) {
-						InterceptClient.debug(exec);
-						InterceptClient.debug("Volume control disabled");
-					}
-				}
-				this.setVolume(vol);
-			}
-			catch(Exception e){
-				InterceptClient.debug(e);
-				InterceptClient.MUTE = true;
-			}
-			start();
+			start(vol);
 		}
 		else {
 			InterceptClient.debug("Client is muted, not starting SoundHandler");
@@ -108,9 +70,13 @@ public class SoundHandler implements Sound{
 	public void setVolume(double volume) {
 		InterceptClient.debug("Setting volume to " + volume);
 		if(this.volume != null) {
-			this.volume.setValue((float)(gain ? (Math.log(volume) / Math.log(10.0) * 20.0) : volume*100.0));
+			float vol = (float)(gain ? (Math.log(volume) / Math.log(10.0) * 20.0) : volume*100.0);
+			if(vol > this.volume.getMaximum()) {
+				vol = this.volume.getMaximum();
+			}
+			this.volume.setValue(vol);
 			InterceptClient.debug("Level: " + this.volume.getValue());
-			System.out.printf("Volume: %s\n", (volume*100.0 + "%"));
+			System.out.printf("%s%s%sVolume: %s%s\n", ANSI.RESET_CURSOR, ANSI.CLEAR_LINE, ANSI.GREEN, (volume*10.0 + "%"), ANSI.RESET);
 		}
 		else {
 			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.YELLOW + "Volume control not supported on this system." + ANSI.RESET);
@@ -134,13 +100,41 @@ public class SoundHandler implements Sound{
 		default: return "peace";
 		}
 	}
-	public void start(){
-		if(InterceptClient.MUTE || clip == null) return;
+	public void start(double vol){
 		try{
 			track = "peace";
 			stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
 			next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
+			clip = AudioSystem.getClip(null);
 			clip.open(stream);
+			try{
+				Info[] mixers = AudioSystem.getMixerInfo();
+				InterceptClient.debug("Mixers: ");
+				Arrays.stream(mixers).map((info) -> AudioSystem.getMixer(info)).forEach((mixerinfo) -> InterceptClient.debug(String.format("%s%s (%s)", ANSI.YELLOW, mixerinfo.getMixerInfo().toString(), mixerinfo.toString())));
+				InterceptClient.debug("Clip: " + ANSI.YELLOW + clip.getLineInfo());
+				InterceptClient.debug("Controls: " + ANSI.YELLOW + Arrays.toString(clip.getControls()));
+				clip.addLineListener(listener);
+			}
+			catch(Exception e){
+				InterceptClient.debug(e);
+				InterceptClient.MUTE = true;
+			}
+			try {
+				volume = (FloatControl) clip.getControl(FloatControl.Type.VOLUME);
+			}
+			catch(IllegalArgumentException e) {
+				InterceptClient.debug(e);
+				InterceptClient.debug("Control type " + ANSI.GREEN + "Volume" + ANSI.CYAN + " unsupported, trying " + ANSI.GREEN + "Master Gain...");
+				gain = true;
+				try {
+					volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+				}
+				catch(IllegalArgumentException exec) {
+					InterceptClient.debug(exec);
+					InterceptClient.debug("Volume control disabled");
+				}
+			}
+			this.setVolume(vol);
 			clip.start();
 			InterceptClient.debug("Now playing: " + ANSI.GREEN + track);
 			
