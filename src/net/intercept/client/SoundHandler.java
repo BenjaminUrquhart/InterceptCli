@@ -56,6 +56,43 @@ public class SoundHandler implements Sound{
 			}
 		}
 	};
+	private LineListener loopLineListener = (event) -> {
+		if(event.getType().equals(Type.STOP)){
+			try {
+				if(!set){
+					track = getNext();
+					stream = next;
+				}
+				else {
+					clip.flush();
+					InterceptClient.debug("Track set to " + track);
+					stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
+				}
+				next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
+				if(track.equals("breach_loop_concat")) {
+					stream = AudioSystem.getAudioInputStream(WAVUtil.concat("breach_loop_concat", stream, next));
+				}
+				set = false;
+				clip.close();
+				clip.open(stream);
+				clip.start();
+				InterceptClient.debug("Now playing: " + ANSI.GREEN + track);
+			} catch (UnsupportedAudioFileException | IOException e) {
+				try{
+					clip.close();
+				}
+				catch(Exception exec) {
+					Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+				}
+				track = "None";
+				InterceptClient.MUTE = true;
+				Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+			} catch (LineUnavailableException e) {
+				InterceptClient.debug(e.toString());
+				InterceptClient.MUTE = true;
+			}
+		}
+	};
 	
 	protected SoundHandler(double vol){
 		track = "None";
@@ -84,6 +121,10 @@ public class SoundHandler implements Sound{
 	}
 	public void setTrack(String track){
 		if(InterceptClient.MUTE || clip == null) return;
+		if(track.equals("breach_loop_concat")) {
+			clip.removeLineListener(listener);
+			clip.addLineListener(loopLineListener);
+		}
 		this.track = track;
 		this.set = true;
 		this.clip.stop();
@@ -97,6 +138,7 @@ public class SoundHandler implements Sound{
 		case "peace2": return "peace";
 		case "breach": return "breach_loop";
 		case "breach_loop": return "breach";
+		case "breach_loop_concat": return track;
 		default: return "peace";
 		}
 	}

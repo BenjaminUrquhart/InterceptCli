@@ -74,7 +74,7 @@ public class InterceptClient {
 			}
 			catch(Exception e){
 				debug(ColorUtil.YELLOW + e);
-				Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(ColorUtil.YELLOW + trace));
+				//Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(ColorUtil.YELLOW + trace));
 				if(tries == 10) {
 					debug(ColorUtil.RED + "Failed to reconnect.");
 					System.exit(1);

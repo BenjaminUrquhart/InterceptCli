@@ -5,6 +5,9 @@ import java.io.BufferedInputStream;
 public interface Sound {
 
 	default BufferedInputStream getStream(String name){
+		if(name.equals("/breach_loop_concat.wav")) {
+			return WAVUtil.concat(name, getStream("/breach.wav"), getStream("/breach_loop.wav"));
+		}
 		InterceptClient.debug("Loaded stream " + ANSI.GREEN + name);
 		return new BufferedInputStream(this.getClass().getResourceAsStream(name));
 	}
