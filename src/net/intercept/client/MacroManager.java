@@ -43,22 +43,28 @@ public class MacroManager {
 			System.out.print(ANSI.RESET);
 		}
 	}
-	public String getMacro(String macro) {
+	public static String getMacro(String macro) {
 		return macros.get(macro);
 	}
-	public boolean removeMacro(String macro) {
+	public static HashMap<String, String> getMacros(){
+		return new HashMap<String, String>(macros);
+	}
+	public static boolean removeMacro(String macro) {
 		if(getMacro(macro) == null) {
 			return false;
 		}
 		macros.remove(macro);
 		try {
 			JSONArray arr = new JSONArray(Files.lines(macroStorage.toPath()).reduce("", (out, in) -> out + in));
-			int index = 0;
+			int index = -1;
 			for(int i = 0; i < arr.length(); i++) {
 				if(arr.getJSONObject(i).getString("name").equals(macro)) {
 					index = i;
 					break;
 				}
+			}
+			if(index == -1) {
+				return false;
 			}
 			arr.remove(index);
 			Files.write(macroStorage.toPath(), arr.toString().getBytes());
@@ -69,7 +75,7 @@ public class MacroManager {
 		}
 		return false;
 	}
-	public boolean setMacro(String name, String cmd) {
+	public static boolean setMacro(String name, String cmd) {
 		macros.put(name, cmd);
 		try {
 			Files.write(macroStorage.toPath(), new JSONArray(

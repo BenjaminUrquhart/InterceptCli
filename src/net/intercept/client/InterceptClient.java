@@ -3,6 +3,7 @@ package net.intercept.client;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.io.*;
@@ -85,7 +86,7 @@ public class InterceptClient {
 			}
 		}
 	}
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] arguments) throws Exception {
 		boolean triedToANSI = false;
 		//Reset ANSI on shutdown
 		Thread.currentThread().setName("Intercept Main Loop");
@@ -98,8 +99,8 @@ public class InterceptClient {
 			DEBUG = oldDebug;
 		});
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m")));
-		if(args.length > 0){
-			for(String arg : args){
+		if(arguments.length > 0){
+			for(String arg : arguments){
 				if(arg.equalsIgnoreCase("noansi")) {
 					triedToANSI = true;
 				}
@@ -213,13 +214,14 @@ public class InterceptClient {
 				
 			}
 			debug("Self: " + ip + " " + pass);
+			MacroManager.loadMacros();
 			showShell = true;
 			listener.handle(json);
 			listener.start();
 			json = new JSONObject().put("request", "command");
 			String line;
 			while(true){
-				line = sc.nextLine();
+				line = sc.nextLine().trim();
 				if(line.equals("clear")){
 					System.out.print(ColorUtil.CLEAR_SCREEN);
 					ColorUtil.setCursorPos(0,0);
@@ -247,10 +249,10 @@ public class InterceptClient {
 					}
 					System.out.print(shell());
 				}
-				else if(line.trim().equals("")){
+				else if(line.equals("")){
 					System.out.print(shell());
 				}
-				else if(line.trim().equals("tracedump")) {
+				else if(line.equals("tracedump")) {
 					if(DEBUG) {
 						Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
 						traces.forEach((thread, trace) -> {
@@ -281,19 +283,35 @@ public class InterceptClient {
 					}
 					else {
 						System.out.println(ColorUtil.YELLOW + "Please enable debug mode first");
-						System.out.println(shell());
+						System.out.print(shell());
 					}
 				}
-				else if(line.trim().equals("debug")) {
+				else if(line.equals("debug")) {
 					DEBUG = !DEBUG;
 					System.out.println("Debug mode " + ColorUtil.GREEN + (DEBUG ? "enabled" : "disabled") + ColorUtil.RESET);
 					System.out.print(shell());
 				}
+				else if(line.startsWith("macros")) {
+					if(!line.contains(" ")) {
+						System.out.println("Usage: macros <list/add/remove> [name] [action]");
+						System.out.print(shell());
+					}
+					else {
+						String[] args = line.split(" ", 4);
+						if(args[1].equals("list")) {
+							int[] index = new int[1];
+							MacroManager.getMacros().forEach((name, cmd) -> {
+								index[0]++;
+								System.out.println(index[0] + ": " + name + " -> " + cmd);
+							});
+						}
+					}
+				}
 				else{
-					if(line.trim().matches("software transfer (\\d+) self")) {
+					if(line.matches("software transfer (\\d+) self")) {
 						line = line.replace("self", ip + " " + pass);
 					}
-					else if(line.trim().matches("bits transfer self (\\d+)")) {
+					else if(line.matches("bits transfer self (\\d+)")) {
 						line = line.replace("self", auth.getString("username"));
 					}
 					json.put("cmd", line);
