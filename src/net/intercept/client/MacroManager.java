@@ -38,7 +38,7 @@ public class MacroManager {
 			System.out.println("Loaded " + macros.values().size() + " macros.");
 		}
 		catch(Exception e){
-			System.out.println(ANSI.YELLOW + "Failed to load macros:\n" + e);
+			System.out.println(ANSI.YELLOW + "Failed to load macros: " + e);
 			Arrays.stream(e.getStackTrace()).forEach((trace) -> InterceptClient.debug(ColorUtil.YELLOW + trace));
 			System.out.print(ANSI.RESET);
 		}
@@ -46,7 +46,30 @@ public class MacroManager {
 	public String getMacro(String macro) {
 		return macros.get(macro);
 	}
-	public void addMacro(String name, String cmd) {
+	public boolean removeMacro(String macro) {
+		if(getMacro(macro) == null) {
+			return false;
+		}
+		macros.remove(macro);
+		try {
+			JSONArray arr = new JSONArray(Files.lines(macroStorage.toPath()).reduce("", (out, in) -> out + in));
+			int index = 0;
+			for(int i = 0; i < arr.length(); i++) {
+				if(arr.getJSONObject(i).getString("name").equals(macro)) {
+					index = i;
+					break;
+				}
+			}
+			arr.remove(index);
+			Files.write(macroStorage.toPath(), arr.toString().getBytes());
+			return true;
+		}
+		catch(Exception e) {
+			InterceptClient.debug(e);
+		}
+		return false;
+	}
+	public boolean setMacro(String name, String cmd) {
 		macros.put(name, cmd);
 		try {
 			Files.write(macroStorage.toPath(), new JSONArray(
@@ -56,7 +79,11 @@ public class MacroManager {
 					.put("cmd", cmd))
 				.toString()
 				.getBytes());
+			return true;
 		}
-		catch(Exception e) {}
+		catch(Exception e) {
+			InterceptClient.debug(e);
+		}
+		return false;
 	}
 }
