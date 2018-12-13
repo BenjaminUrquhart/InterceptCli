@@ -86,7 +86,7 @@ public class EventHandler {
 					+ ColorUtil.RESET
 					+ "\n" + msg;
 			panic = true;
-			sound.setTrack("breach");
+			sound.setTrack("breach_loop_concat");
 		}
 		if(json.has("panicEnd")){
 			msg = ColorUtil.GREEN
