@@ -107,9 +107,12 @@ public class SoundHandler implements Sound{
 	public void setVolume(double volume) {
 		InterceptClient.debug("Setting volume to " + volume);
 		if(this.volume != null) {
-			float vol = (float)(gain ? (Math.log(volume) / Math.log(10.0) * 20.0) : volume*100.0);
+			float vol = (float)(gain ? (Math.pow(2.0, (10.0*Math.log(volume/10.0))/6.0))*46.0206 - 40.0 : volume*10.0);
 			if(vol > this.volume.getMaximum()) {
 				vol = this.volume.getMaximum();
+			}
+			if(vol < this.volume.getMinimum() || (int)vol == -40) {
+				vol = this.volume.getMinimum();
 			}
 			this.volume.setValue(vol);
 			InterceptClient.debug("Level: " + this.volume.getValue());
