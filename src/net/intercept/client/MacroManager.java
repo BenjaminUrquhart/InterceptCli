@@ -27,8 +27,7 @@ public class MacroManager {
 			InterceptClient.debug(jsonArr);
 			jsonArr.forEach((obj) -> {
 				try {
-					@SuppressWarnings("unchecked")
-					JSONObject json = new JSONObject((HashMap<String, Object>)obj);
+					JSONObject json = (JSONObject)obj;
 					macros.put(json.getString("name"), json.getString("cmd"));
 				}
 				catch(Exception e) {

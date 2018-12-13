@@ -3,7 +3,6 @@ package net.intercept.client;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.io.*;
@@ -294,7 +293,6 @@ public class InterceptClient {
 				else if(line.startsWith("macros")) {
 					if(!line.contains(" ")) {
 						System.out.println("Usage: macros <list/add/remove> [name] [action]");
-						System.out.print(shell());
 					}
 					else {
 						String[] args = line.split(" ", 4);
@@ -302,12 +300,45 @@ public class InterceptClient {
 							int[] index = new int[1];
 							MacroManager.getMacros().forEach((name, cmd) -> {
 								index[0]++;
-								System.out.println(index[0] + ": " + name + " -> " + cmd);
+								System.out.printf("%d: %s%s%s -> %s%s%s\n", index[0], ANSI.GREEN, name, ANSI.CYAN, ANSI.GREEN, cmd, ANSI.RESET);
 							});
 						}
+						else if(args[1].equals("add")) {
+							if(args.length < 4) {
+								System.out.println("Usage: macros add <name> <command>");
+							}
+							else {
+								if(MacroManager.setMacro(args[2], args[3])) {
+									System.out.printf("%s[SUCCESS]%s macro %s%s%s set to %s%s%s\n", ANSI.GREEN, ANSI.RESET, ANSI.CYAN, args[2], ANSI.RESET, ANSI.CYAN, args[3], ANSI.RESET);
+								}
+								else {
+									System.out.printf("%s[WARN] failed to set macro %s%s%s. More details can be found by using debug mode.%s\n", ANSI.YELLOW, ANSI.CYAN, args[2], ANSI.YELLOW, ANSI.RESET);
+								}
+							}
+						}
+						else if(args[1].equals("remove")) {
+							if(args.length < 3) {
+								System.out.println("Usage: macros remove <name>");
+							}
+							else {
+								if(MacroManager.removeMacro(args[2])) {
+									System.out.printf("%s[SUCCESS]%s macro %s%s%s removed\n", ANSI.GREEN, ANSI.RESET, ANSI.CYAN, args[2], ANSI.RESET);
+								}
+								else {
+									System.out.printf("%s[WARN] failed to remove macro %s%s%s. More details can be found by using debug mode.%s\n", ANSI.YELLOW, ANSI.CYAN, args[2], ANSI.YELLOW, ANSI.RESET);
+								}
+							}
+						}
+						else {
+							System.out.println("Usage: macros <list/add/remove> [name] [action]");
+						}
 					}
+					System.out.print(shell());
 				}
 				else{
+					if(MacroManager.getMacro(line.split(" ")[0]) != null) {
+						line = MacroManager.getMacro(line.split(" ")[0]);
+					}
 					if(line.matches("software transfer (\\d+) self")) {
 						line = line.replace("self", ip + " " + pass);
 					}
