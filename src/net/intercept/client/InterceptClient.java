@@ -90,7 +90,6 @@ public class InterceptClient {
 		//Reset ANSI on shutdown
 		Thread.currentThread().setName("Intercept Main Loop");
 		Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
-			System.out.println();
 			boolean oldDebug = DEBUG;
 			DEBUG = true;
 			debug(ColorUtil.RED + "An exception was thrown in the thread " + ColorUtil.YELLOW + thread.getName() + ":");
