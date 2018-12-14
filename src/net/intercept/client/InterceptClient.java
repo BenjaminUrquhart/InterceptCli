@@ -338,7 +338,7 @@ public class InterceptClient {
 				}
 				else{
 					if(MacroManager.getMacro(line.split(" ")[0]) != null) {
-						line = MacroManager.getMacro(line.split(" ")[0]);
+						line = MacroManager.getMacro(line.split(" ")[0]) + (line.contains(" ") ? " " + line.split(" ", 2)[1] : "");
 					}
 					if(line.matches("software transfer (\\d+) self")) {
 						line = line.replace("self", ip + " " + pass);
