@@ -25,6 +25,8 @@ public class InterceptClient {
 	private static PrintWriter output;
 	private static ReceiveHandler listener;
 	
+	private static JSONObject auth;
+	
 	public static String shell(){
 		return showShell ? String.format(SHELL, EventHandler.connectedIP) : "";
 	}
@@ -69,17 +71,27 @@ public class InterceptClient {
 					return;
 				}
 				else {
-					throw new IllegalArgumentException("Got bad response from server: " + response);
+					if(json.getString("error").equals("Unauthorised")) {
+						debug(ANSI.YELLOW + "Token expired, logging in again...");
+						output.println(new JSONObject().put("request", "auth").put("login", auth));
+						output.flush();
+						TOKEN = new JSONObject(input.readLine()).getString("token");
+						tries--;
+						throw new IllegalStateException("Got token. Throwing exception just to restart the auth process...");
+					}
+					else {
+						throw new IllegalArgumentException("Got bad response from server: " + response);
+					}
 				}
 			}
 			catch(Exception e){
 				debug(ColorUtil.YELLOW + e);
 				//Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(ColorUtil.YELLOW + trace));
+				tries++;
 				if(tries == 10) {
 					debug(ColorUtil.RED + "Failed to reconnect.");
 					System.exit(1);
 				}
-				tries++;
 				debug("Waiting " + tries + " second(s) before next attempt.");
 				try {Thread.sleep(1000*tries);}catch(Exception exec) {}
 			}
@@ -139,7 +151,6 @@ public class InterceptClient {
 		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		output = new PrintWriter(conn.getOutputStream());
 		JSONObject json = new JSONObject(input.readLine());
-		JSONObject auth = new JSONObject();
 		Scanner sc = new Scanner(System.in);
 		debug("Client ID: " + json.getString("client_id"));
 		debug("Client type: " + json.getString("client_type"));
@@ -149,6 +160,7 @@ public class InterceptClient {
 		boolean reg = sc.nextLine().toLowerCase().trim().equals("register");
 		boolean success = false;
 		System.out.println(reg ? "Creating a new account..." : "Logging in...");
+		auth = new JSONObject();
 		while(!success){
 			json = new JSONObject();
 			auth = new JSONObject();
@@ -181,7 +193,6 @@ public class InterceptClient {
 				System.out.println(json.getString("error"));
 			}
 		}
-		auth.remove("password");
 		json.put("request", "connect");
 		json.remove("cfg");
 		json.remove("event");
