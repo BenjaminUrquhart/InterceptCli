@@ -8,6 +8,8 @@ import java.util.HashMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import static net.intercept.client.ANSI.*;
+
 public class MacroManager {
 
 	private static HashMap<String, String> macros;
@@ -37,9 +39,9 @@ public class MacroManager {
 			System.out.println("Loaded " + macros.values().size() + " macros.");
 		}
 		catch(Exception e){
-			System.out.println(ANSI.YELLOW + "Failed to load macros: " + e);
+			System.out.println(YELLOW + "Failed to load macros: " + e);
 			Arrays.stream(e.getStackTrace()).forEach((trace) -> InterceptClient.debug(ColorUtil.YELLOW + trace));
-			System.out.print(ANSI.RESET);
+			System.out.print(RESET);
 		}
 	}
 	public static String getMacro(String macro) {
@@ -50,6 +52,7 @@ public class MacroManager {
 	}
 	public static boolean removeMacro(String macro) {
 		if(getMacro(macro) == null) {
+			InterceptClient.debug("Failed to remove macro: Macro does not exist.");
 			return false;
 		}
 		macros.remove(macro);
@@ -63,6 +66,7 @@ public class MacroManager {
 				}
 			}
 			if(index == -1) {
+				InterceptClient.debug("Failed to remove macro: Macro is not saved to disk.");
 				return false;
 			}
 			arr.remove(index);
@@ -74,7 +78,14 @@ public class MacroManager {
 		}
 		return false;
 	}
-	public static boolean setMacro(String name, String cmd) {
+	public static boolean addMacro(String name, String cmd){
+		return setMacro(name, cmd, false);
+	}
+	public static boolean setMacro(String name, String cmd, boolean force) {
+		if((!force) && macros.get(name) != null){
+			InterceptClient.debug("Failed to add macro: Macro already exists.");
+			return false;
+		}
 		macros.put(name, cmd);
 		try {
 			Files.write(macroStorage.toPath(), new JSONArray(

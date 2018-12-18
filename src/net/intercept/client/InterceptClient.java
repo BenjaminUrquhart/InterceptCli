@@ -9,6 +9,8 @@ import java.io.*;
 
 import org.json.JSONObject;
 
+import static net.intercept.client.ANSI.*;
+
 public class InterceptClient {
 
 	private static String IP = "209.97.136.54";
@@ -32,7 +34,7 @@ public class InterceptClient {
 	}
 	public static void debug(Object text) {
 		if(DEBUG) {
-			System.out.printf("%s%s%s[DEBUG] %s%s\n%s", ColorUtil.RESET_CURSOR, ColorUtil.CLEAR_LINE, ColorUtil.CYAN, String.valueOf(text), ColorUtil.RESET, shell());
+			System.out.printf("%s%s%s[DEBUG] %s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, String.valueOf(text), RESET, shell());
 		}
 	}
 	private static String pad(String in) {
@@ -63,7 +65,7 @@ public class InterceptClient {
 				response = new JSONObject(input.readLine());
 				if((response.has("sucess") && response.getBoolean("sucess")) || (response.has("success") && response.getBoolean("success"))) {
 					showShell = true;
-					debug(ColorUtil.GREEN + "Reconnected");
+					debug(GREEN + "Reconnected");
 					RECONNECTING = false;
 					listener = new ReceiveHandler(input, 0.0);
 					listener.start();
@@ -72,12 +74,11 @@ public class InterceptClient {
 				}
 				else {
 					if(json.getString("error").equals("Unauthorised")) {
-						debug(ANSI.YELLOW + "Token expired, logging in again...");
 						output.println(new JSONObject().put("request", "auth").put("login", auth));
 						output.flush();
 						TOKEN = new JSONObject(input.readLine()).getString("token");
 						tries--;
-						throw new IllegalStateException("Got token. Throwing exception just to restart the auth process...");
+						throw new IllegalStateException("Token expired, logging in again...");
 					}
 					else {
 						throw new IllegalArgumentException("Got bad response from server: " + response);
@@ -85,11 +86,11 @@ public class InterceptClient {
 				}
 			}
 			catch(Exception e){
-				debug(ColorUtil.YELLOW + e);
-				//Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(ColorUtil.YELLOW + trace));
+				debug(YELLOW + e);
+				//Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + trace));
 				tries++;
 				if(tries == 10) {
-					debug(ColorUtil.RED + "Failed to reconnect.");
+					debug(RED + "Failed to reconnect.");
 					System.exit(1);
 				}
 				debug("Waiting " + tries + " second(s) before next attempt.");
@@ -105,9 +106,9 @@ public class InterceptClient {
 			System.out.println();
 			boolean oldDebug = DEBUG;
 			DEBUG = true;
-			debug(ColorUtil.RED + "An exception was thrown in the thread " + ColorUtil.YELLOW + thread.getName() + ":");
-			debug(ColorUtil.RED + e.toString());
-			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(ColorUtil.RED + "at " + element));
+			debug(RED + "An exception was thrown in the thread " + YELLOW + thread.getName() + ":");
+			debug(RED + e.toString());
+			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(RED + "at " + element));
 			DEBUG = oldDebug;
 		});
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m")));
@@ -130,16 +131,16 @@ public class InterceptClient {
 				}
 			}
 		}
-		System.out.print(ColorUtil.CLEAR_SCREEN + ColorUtil.RESET);
-		ColorUtil.setCursorPos(0,0);
+		System.out.print(CLEAR_SCREEN + RESET);
+		setCursorPos(0,0);
 		if(triedToANSI) {
-			System.out.println(ColorUtil.RED
+			System.out.println(RED
 					+ "#############################################\n"
 					+ "#                                           #\n"
 					+ "# ANSI is always enabled now, deal with it. #\n"
 					+ "#                                           #\n"
 					+ "#############################################\n" 
-					+ ColorUtil.RESET);
+					+ RESET);
 		}
 		if(MUTE){
 			System.out.println("Sound disabled");
@@ -156,7 +157,7 @@ public class InterceptClient {
 		debug("Client type: " + json.getString("client_type"));
 		debug("Date: " + new Date(json.getLong("date")));
 		debug("OS: " + System.getProperty("os.name"));
-		System.out.print(ColorUtil.GREEN + "Login/Register: ");
+		System.out.print(GREEN + "Login/Register: ");
 		boolean reg = sc.nextLine().toLowerCase().trim().equals("register");
 		boolean success = false;
 		System.out.println(reg ? "Creating a new account..." : "Logging in...");
@@ -215,7 +216,7 @@ public class InterceptClient {
 				JSONObject player = json.getJSONObject("player");
 				ip = player.getString("ip");
 				if(!player.getString("ip").equals(player.getString("conn"))){
-					String msg = ColorUtil.CYAN + "You are connected to an external system." + ColorUtil.RESET;
+					String msg = CYAN + "You are connected to an external system." + RESET;
 					EventHandler.connectedIP = player.getString("conn");
 					System.out.println(msg);
 				}
@@ -233,25 +234,28 @@ public class InterceptClient {
 			String line;
 			while(true){
 				line = sc.nextLine().trim();
+				if(MacroManager.getMacro(line.split(" ")[0]) != null) {
+					line = MacroManager.getMacro(line.split(" ")[0]) + (line.contains(" ") ? " " + line.split(" ", 2)[1] : "");
+				}
 				if(line.equals("clear")){
-					System.out.print(ColorUtil.CLEAR_SCREEN);
-					ColorUtil.setCursorPos(0,0);
+					System.out.print(CLEAR_SCREEN);
+					setCursorPos(0,0);
 					System.out.print(shell());
 					continue;
 				}
 				else if(line.startsWith("track")) {
 					if(!line.trim().contains(" ")) {
-						System.out.println("Usage: track <breach|peace|peace2|breach_loop>");
-						System.out.printf("%sCurrect track: %s%s%s\n", ColorUtil.WHITE, ColorUtil.GREEN, listener.getSoundHandler().getTrack(), ColorUtil.RESET);
+						System.out.println("Usage: track [breach|peace|peace2|breach_loop]");
+						System.out.printf("%sCurrect track: %s%s%s\n", WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
 					}
 					else if(MUTE || listener.getSoundHandler().getTrack().equals("None")) {
-						System.out.printf("%sCannot set a track when audio is disabled%s\n", ColorUtil.YELLOW, ColorUtil.RESET);
+						System.out.printf("%sCannot set a track when audio is disabled%s\n", YELLOW, RESET);
 						MUTE = true;
 					}
 					else {
 						try {
 							listener.getSoundHandler().setTrack(line.split(" ")[1].toLowerCase().trim());
-							System.out.printf("%sNow playing: %s%s%s\n", ColorUtil.WHITE, ColorUtil.GREEN, listener.getSoundHandler().getTrack(), ColorUtil.RESET);
+							System.out.printf("%sNow playing: %s%s%s\n", WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
 						}
 						catch(Exception e) {
 							System.out.println("Failed to load track. Defaulting to \"peace\"");
@@ -263,6 +267,22 @@ public class InterceptClient {
 				else if(line.equals("")){
 					System.out.print(shell());
 				}
+				else if(line.equals("mute")){
+					MUTE = !MUTE;
+					System.out.println("Audio " + GREEN + (MUTE ? "enabled" : "disabled") + RESET);
+					if(MUTE){
+						listener.getSoundHandler().setVolume(0.0);
+					}
+					else{
+						if(listener.getSoundHandler().getTrack().equals("None")){
+							listener.getSoundHandler().start(volume);
+						}
+						else{
+							listener.getSoundHandler().setVolume(volume);
+						}
+					}
+					System.out.print(shell());
+				}
 				else if(line.equals("tracedump")) {
 					if(DEBUG) {
 						Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
@@ -270,41 +290,41 @@ public class InterceptClient {
 							debug("----------------------------------------------------------------------------------------------------------------------- #");
 							debug(pad(
 									String.format("%sThread: %s%s%s - ID: %s%d%s - State: %s%s%s - Group: %s%s", 
-									ColorUtil.BLUE, 
-									ColorUtil.GREEN, 
+									BLUE, 
+									GREEN, 
 									thread.getName(),
-									ColorUtil.BLUE, 
-									ColorUtil.GREEN,
+									BLUE, 
+									GREEN,
 									thread.getId(),
-									ColorUtil.BLUE, 
-									ColorUtil.GREEN, 
+									BLUE, 
+									GREEN, 
 									String.valueOf(thread.getState()), 
-									ColorUtil.BLUE, 
-									ColorUtil.GREEN, 
+									BLUE, 
+									GREEN, 
 									String.valueOf(thread.getThreadGroup())))
-									+ ColorUtil.CYAN + "#");
+									+ CYAN + "#");
 							
 							if(trace.length == 0) {
-								debug(pad(ColorUtil.YELLOW + "(no trace available)") + ColorUtil.CYAN + "#");
+								debug(pad(YELLOW + "(no trace available)") + CYAN + "#");
 								return;
 							}
-							Arrays.stream(trace).forEach((element) -> debug(pad(ColorUtil.YELLOW + element) + ColorUtil.CYAN + "#"));
+							Arrays.stream(trace).forEach((element) -> debug(pad(YELLOW + element) + CYAN + "#"));
 						});
 						debug("----------------------------------------------------------------------------------------------------------------------- #");
 					}
 					else {
-						System.out.println(ColorUtil.YELLOW + "Please enable debug mode first");
+						System.out.println(YELLOW + "Please enable debug mode first");
 						System.out.print(shell());
 					}
 				}
 				else if(line.equals("debug")) {
 					DEBUG = !DEBUG;
-					System.out.println("Debug mode " + ColorUtil.GREEN + (DEBUG ? "enabled" : "disabled") + ColorUtil.RESET);
+					System.out.println("Debug mode " + GREEN + (DEBUG ? "enabled" : "disabled") + RESET);
 					System.out.print(shell());
 				}
 				else if(line.startsWith("macros")) {
 					if(!line.contains(" ")) {
-						System.out.println("Usage: macros <list/add/remove> [name] [action]");
+						System.out.println("Usage: macros [list/add/remove] [name] [action]");
 					}
 					else {
 						String[] args = line.split(" ", 4);
@@ -312,32 +332,32 @@ public class InterceptClient {
 							int[] index = new int[1];
 							MacroManager.getMacros().forEach((name, cmd) -> {
 								index[0]++;
-								System.out.printf("%d: %s%s%s -> %s%s%s\n", index[0], ANSI.GREEN, name, ANSI.CYAN, ANSI.GREEN, cmd, ANSI.RESET);
+								System.out.printf("%d: %s%s%s -> %s%s%s\n", index[0], GREEN, name, CYAN, GREEN, cmd, RESET);
 							});
 						}
 						else if(args[1].equals("add")) {
 							if(args.length < 4) {
-								System.out.println("Usage: macros add <name> <command>");
+								System.out.println("Usage: macros add [name] [command]");
 							}
 							else {
-								if(MacroManager.setMacro(args[2], args[3])) {
-									System.out.printf("%s[SUCCESS]%s macro %s%s%s set to %s%s%s\n", ANSI.GREEN, ANSI.RESET, ANSI.CYAN, args[2], ANSI.RESET, ANSI.CYAN, args[3], ANSI.RESET);
+								if(MacroManager.addMacro(args[2], args[3])) {
+									System.out.printf("%s[SUCCESS]%s macro %s%s%s set to %s%s%s\n", GREEN, RESET, CYAN, args[2], RESET, CYAN, args[3], RESET);
 								}
 								else {
-									System.out.printf("%s[WARN] failed to set macro %s%s%s. More details can be found by using debug mode.%s\n", ANSI.YELLOW, ANSI.CYAN, args[2], ANSI.YELLOW, ANSI.RESET);
+									System.out.printf("%s[WARN] failed to set macro %s%s%s. More details can be found by using debug mode.%s\n", YELLOW, CYAN, args[2], YELLOW, RESET);
 								}
 							}
 						}
 						else if(args[1].equals("remove")) {
 							if(args.length < 3) {
-								System.out.println("Usage: macros remove <name>");
+								System.out.println("Usage: macros remove [name]");
 							}
 							else {
 								if(MacroManager.removeMacro(args[2])) {
-									System.out.printf("%s[SUCCESS]%s macro %s%s%s removed\n", ANSI.GREEN, ANSI.RESET, ANSI.CYAN, args[2], ANSI.RESET);
+									System.out.printf("%s[SUCCESS]%s macro %s%s%s removed\n", GREEN, RESET, CYAN, args[2], RESET);
 								}
 								else {
-									System.out.printf("%s[WARN] failed to remove macro %s%s%s. More details can be found by using debug mode.%s\n", ANSI.YELLOW, ANSI.CYAN, args[2], ANSI.YELLOW, ANSI.RESET);
+									System.out.printf("%s[WARN] failed to remove macro %s%s%s. More details can be found by using debug mode.%s\n", YELLOW, CYAN, args[2], YELLOW, RESET);
 								}
 							}
 						}
@@ -348,9 +368,6 @@ public class InterceptClient {
 					System.out.print(shell());
 				}
 				else{
-					if(MacroManager.getMacro(line.split(" ")[0]) != null) {
-						line = MacroManager.getMacro(line.split(" ")[0]) + (line.contains(" ") ? " " + line.split(" ", 2)[1] : "");
-					}
 					if(line.matches("software transfer (\\d+) self")) {
 						line = line.replace("self", ip + " " + pass);
 					}

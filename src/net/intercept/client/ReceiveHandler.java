@@ -6,6 +6,8 @@ import java.net.SocketException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import static net.intercept.client.ANSI.*;
+
 public class ReceiveHandler extends Thread{
 
 	private BufferedReader reader;
@@ -28,7 +30,7 @@ public class ReceiveHandler extends Thread{
 			while(true){
 				try{
 					handler.handleEvent(new JSONObject(reader.readLine()));
-					System.out.print(ColorUtil.RESET);
+					System.out.print(RESET);
 				}
 				catch(ArrayIndexOutOfBoundsException e){
 					System.out.println(InterceptClient.shell());
@@ -43,7 +45,7 @@ public class ReceiveHandler extends Thread{
 		}
 		catch(NullPointerException | SocketException e){
 			Thread.getDefaultUncaughtExceptionHandler().uncaughtException(this, e);
-			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.YELLOW + "Connection to server dropped unexpectedly");
+			System.out.println(RESET_CURSOR + CLEAR_LINE + YELLOW + "Connection to server dropped unexpectedly");
 			InterceptClient.reconnect();
 			return;
 		}

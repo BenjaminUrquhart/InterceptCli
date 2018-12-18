@@ -14,6 +14,8 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.Mixer.Info;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import static net.intercept.client.ANSI.*;
+
 public class SoundHandler implements Sound{
 	
 	private boolean set = false, gain = false;
@@ -38,24 +40,41 @@ public class SoundHandler implements Sound{
 				clip.close();
 				clip.open(stream);
 				clip.start();
-				InterceptClient.debug("Now playing: " + ANSI.GREEN + track);
+				InterceptClient.debug("Now playing: " + GREEN + track);
 				next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
-			} catch (UnsupportedAudioFileException | IOException e) {
+			} catch (UnsupportedAudioFileException e) {
 				try{
 					clip.close();
 				}
 				catch(Exception exec) {
-					Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+					Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), exec);
 				}
 				track = "None";
 				InterceptClient.MUTE = true;
 				Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
 			} catch (LineUnavailableException e) {
+				track = "None";
 				InterceptClient.debug(e.toString());
 				InterceptClient.MUTE = true;
+			} catch (IOException e) {
+				System.out.printf("%s%s%s[ERROR] Track %s%s%s does not exist%s\n%s", CLEAR_LINE, RESET_CURSOR, RED, YELLOW, track, RED, RESET, InterceptClient.shell());
+				try{
+					track = "peace";
+					stream = AudioSystem.getAudioInputStream(getStream("/" + track + ".wav"));
+					next = AudioSystem.getAudioInputStream(getStream("/" + getNext() + ".wav"));
+					clip.close();
+					clip.open(stream);
+					clip.start();
+					InterceptClient.debug("Now playing: " + GREEN + track);
+				}
+				catch(Exception exec){
+					track = "None";
+					Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), exec);
+					InterceptClient.MUTE = true;
+				}
 			}
 		}
-	};
+	};/*
 	private LineListener loopLineListener = (event) -> {
 		if(event.getType().equals(Type.STOP)){
 			try {
@@ -76,7 +95,7 @@ public class SoundHandler implements Sound{
 				clip.close();
 				clip.open(stream);
 				clip.start();
-				InterceptClient.debug("Now playing: " + ANSI.GREEN + track);
+				InterceptClient.debug("Now playing: " + GREEN + track);
 			} catch (UnsupportedAudioFileException | IOException e) {
 				try{
 					clip.close();
@@ -92,7 +111,7 @@ public class SoundHandler implements Sound{
 				InterceptClient.MUTE = true;
 			}
 		}
-	};
+	};*/
 	
 	protected SoundHandler(double vol){
 		track = "None";
@@ -116,18 +135,14 @@ public class SoundHandler implements Sound{
 			}
 			this.volume.setValue(vol);
 			InterceptClient.debug("Level: " + this.volume.getValue());
-			System.out.printf("%s%s%sVolume: %s%s\n", ANSI.RESET_CURSOR, ANSI.CLEAR_LINE, ANSI.GREEN, (volume*10.0 + "%"), ANSI.RESET);
+			System.out.printf("%s%s%sVolume: %s%s\n", RESET_CURSOR, CLEAR_LINE, GREEN, (volume*10.0 + "%"), RESET);
 		}
 		else {
-			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.YELLOW + "Volume control not supported on this system." + ANSI.RESET);
+			System.out.println(RESET_CURSOR + CLEAR_LINE + YELLOW + "Volume control not supported on this system." + RESET);
 		}
 	}
 	public void setTrack(String track){
 		if(InterceptClient.MUTE || clip == null) return;
-		if(track.equals("breach_loop_concat")) {
-			clip.removeLineListener(listener);
-			clip.addLineListener(loopLineListener);
-		}
 		this.track = track;
 		this.set = true;
 		this.clip.stop();
@@ -155,9 +170,9 @@ public class SoundHandler implements Sound{
 			try{
 				Info[] mixers = AudioSystem.getMixerInfo();
 				InterceptClient.debug("Mixers: ");
-				Arrays.stream(mixers).map((info) -> AudioSystem.getMixer(info)).forEach((mixerinfo) -> InterceptClient.debug(String.format("%s%s (%s)", ANSI.YELLOW, mixerinfo.getMixerInfo().toString(), mixerinfo.toString())));
-				InterceptClient.debug("Clip: " + ANSI.YELLOW + clip.getLineInfo());
-				InterceptClient.debug("Controls: " + ANSI.YELLOW + Arrays.toString(clip.getControls()));
+				Arrays.stream(mixers).map((info) -> AudioSystem.getMixer(info)).forEach((mixerinfo) -> InterceptClient.debug(String.format("%s%s (%s)", YELLOW, mixerinfo.getMixerInfo().toString(), mixerinfo.toString())));
+				InterceptClient.debug("Clip: " + YELLOW + clip.getLineInfo());
+				InterceptClient.debug("Controls: " + YELLOW + Arrays.toString(clip.getControls()));
 				clip.addLineListener(listener);
 			}
 			catch(Exception e){
@@ -169,7 +184,7 @@ public class SoundHandler implements Sound{
 			}
 			catch(IllegalArgumentException e) {
 				InterceptClient.debug(e);
-				InterceptClient.debug("Control type " + ANSI.GREEN + "Volume" + ANSI.CYAN + " unsupported, trying " + ANSI.GREEN + "Master Gain...");
+				InterceptClient.debug("Control type " + GREEN + "Volume" + CYAN + " unsupported, trying " + GREEN + "Master Gain...");
 				gain = true;
 				try {
 					volume = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
@@ -181,7 +196,7 @@ public class SoundHandler implements Sound{
 			}
 			this.setVolume(vol);
 			clip.start();
-			InterceptClient.debug("Now playing: " + ANSI.GREEN + track);
+			InterceptClient.debug("Now playing: " + GREEN + track);
 			
 		}
 		catch(FileNotFoundException | IllegalArgumentException e){
