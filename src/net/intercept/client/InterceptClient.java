@@ -17,7 +17,7 @@ public class InterceptClient {
 	private static String TOKEN = null;
 	private static final int PORT = 13373;
 	
-	public static final String SHELL = "root@%s~# ";
+	public static final String SHELL = RESET + "root@%s~# ";
 	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false;
 	
 	private static boolean showShell = false;
