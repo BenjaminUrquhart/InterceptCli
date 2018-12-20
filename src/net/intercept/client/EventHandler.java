@@ -34,7 +34,7 @@ public class EventHandler {
 		JSONObject conn = null;
 		boolean broadcast = event.equals("broadcast");
 		if(json.has("msg")){
-			msg = json.getString("msg");
+			msg = json.getString("msg").replace("\u001b", "\\u001b");
 			msg = ColorUtil.toANSI(msg);
 		}
 		if(event.equals("error")){

@@ -1,6 +1,7 @@
 package net.intercept.client;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,7 +26,7 @@ public class MacroManager {
 				Files.write(macroStorage.toPath(), "[]".getBytes());
 				InterceptClient.debug("Created macros.json");
 			}
-			JSONArray jsonArr = new JSONArray(Files.lines(macroStorage.toPath()).reduce("", (out, in) -> out + in));
+			JSONArray jsonArr = new JSONArray(Files.lines(macroStorage.toPath(), Charset.defaultCharset()).reduce("", (out, in) -> out + in));
 			InterceptClient.debug(jsonArr);
 			jsonArr.forEach((obj) -> {
 				try {
@@ -36,7 +37,7 @@ public class MacroManager {
 					InterceptClient.debug("Failed to load macro " + obj + ":\n" + e);
 				}
 			});
-			System.out.println("Loaded " + macros.values().size() + " macros.");
+			System.out.println(CLEAR_LINE + RESET_CURSOR + GREEN + "Loaded " + macros.values().size() + " macros.");
 		}
 		catch(Exception e){
 			System.out.println(YELLOW + "Failed to load macros: " + e);
@@ -57,7 +58,7 @@ public class MacroManager {
 		}
 		macros.remove(macro);
 		try {
-			JSONArray arr = new JSONArray(Files.lines(macroStorage.toPath()).reduce("", (out, in) -> out + in));
+			JSONArray arr = new JSONArray(Files.lines(macroStorage.toPath(), Charset.defaultCharset()).reduce("", (out, in) -> out + in));
 			int index = -1;
 			for(int i = 0; i < arr.length(); i++) {
 				if(arr.getJSONObject(i).getString("name").equals(macro)) {
@@ -89,7 +90,7 @@ public class MacroManager {
 		macros.put(name, cmd);
 		try {
 			Files.write(macroStorage.toPath(), new JSONArray(
-					Files.lines(macroStorage.toPath()).reduce("", (out, in) -> out + in))
+					Files.lines(macroStorage.toPath(), Charset.defaultCharset()).reduce("", (out, in) -> out + in))
 					.put(new JSONObject()
 					.put("name", name)
 					.put("cmd", cmd))

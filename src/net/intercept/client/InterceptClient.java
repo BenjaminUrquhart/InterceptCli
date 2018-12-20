@@ -324,7 +324,7 @@ public class InterceptClient {
 				}
 				else if(line.startsWith("macros")) {
 					if(!line.contains(" ")) {
-						System.out.println("Usage: macros [list/add/remove] [name] [action]");
+						System.out.println("Usage: macros [list/add/remove/reload] [name] [action]");
 					}
 					else {
 						String[] args = line.split(" ", 4);
@@ -332,7 +332,7 @@ public class InterceptClient {
 							int[] index = new int[1];
 							MacroManager.getMacros().forEach((name, cmd) -> {
 								index[0]++;
-								System.out.printf("%d: %s%s%s -> %s%s%s\n", index[0], GREEN, name, CYAN, GREEN, cmd, RESET);
+								System.out.printf("%d: %s%s%s -> %s%s%s\n", index[0], GREEN, name, CYAN, GREEN, cmd.replace("\u001b", "\\u001b"), RESET);
 							});
 						}
 						else if(args[1].equals("add")) {
@@ -360,6 +360,9 @@ public class InterceptClient {
 									System.out.printf("%s[WARN] failed to remove macro %s%s%s. More details can be found by using debug mode.%s\n", YELLOW, CYAN, args[2], YELLOW, RESET);
 								}
 							}
+						}
+						else if(args[1].equals("reload")) {
+							MacroManager.loadMacros();
 						}
 						else {
 							System.out.println("Usage: macros <list/add/remove> [name] [action]");
