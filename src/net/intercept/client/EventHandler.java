@@ -2,6 +2,8 @@ package net.intercept.client;
 
 import org.json.JSONObject;
 
+import static net.intercept.client.ColorUtil.*;
+
 public class EventHandler {
 
 	public static String connectedIP = "system";
@@ -21,9 +23,9 @@ public class EventHandler {
 		InterceptClient.debug(json);
 		if(!json.has("event")){
 			System.out.println(
-					ColorUtil.RED
+					RED
 					+ json.getString("error")
-					+ ColorUtil.RESET);
+					+ RESET);
 			
 			System.out.print(InterceptClient.shell());
 			return;
@@ -35,7 +37,8 @@ public class EventHandler {
 		boolean broadcast = event.equals("broadcast");
 		if(json.has("msg")){
 			msg = json.getString("msg").replace("\u001b", "\\u001b");
-			msg = ColorUtil.toANSI(msg);
+			InterceptClient.debug(msg);
+			msg = toANSI(msg);
 		}
 		if(event.equals("error")){
 			msg = json.getString("error");
@@ -64,41 +67,41 @@ public class EventHandler {
 			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.RED + "You have been traced from " + json.getString("system") + ANSI.RESET);
 		}
 		else if(event.equals("chat")){
-			msg = ColorUtil.GREEN + "[CHAT] " + msg + ColorUtil.RESET_STR;
+			msg = GREEN + "[CHAT] " + msg + RESET_STR;
 		}
 		else if(event.equals("cfg")) {
 			json.put("msg", BubColor.YELLOW + "Received config update event." + BubColor.RESET);
-			msg = ColorUtil.toANSI(json.getString("msg"));
+			msg = toANSI(json.getString("msg"));
 			sound.setVolume(json.getJSONObject("cfg").getDouble("vol"));
 		}
 		else{
 			System.out.println("Unknown event from data: " + json + "\n");
 		}
 		if(json.has("success")){
-			msg = (json.getBoolean("success") ? "" : ColorUtil.RED + "[ERROR] ") + ColorUtil.RESET_STR + msg;
+			msg = (json.getBoolean("success") ? "" : RED + "[ERROR] ") + RESET_STR + msg;
 		}
 		if(broadcast){
-			msg = ColorUtil.BLUE + "[BROADCAST] " + ColorUtil.RESET_STR + msg;
+			msg = BLUE + "[BROADCAST] " + RESET_STR + msg;
 		}
 		if(json.has("panic")){
-			msg = ColorUtil.RED
+			msg = RED
 					+ "You are in panic mode"
-					+ ColorUtil.RESET
+					+ RESET
 					+ "\n" + msg;
 			panic = true;
 			sound.setTrack("breach_loop_concat");
 		}
 		if(json.has("panicEnd")){
-			msg = ColorUtil.GREEN
+			msg = GREEN
 					+ "You are no longer in panic mode"
-					+ ColorUtil.RESET
+					+ RESET
 					+ "\n" + msg;
 			panic = false;
 			sound.setTrack("peace2");
 		}
-		System.out.print(ColorUtil.RESET + ColorUtil.CLEAR_LINE + ColorUtil.RESET_CURSOR);
+		System.out.print(RESET + CLEAR_LINE + RESET_CURSOR);
 		msg = msg.replace("\u200b", " ").replace("\t", " ").replace("\u00C2", "");
-		System.out.println(msg);
+		System.out.println(GREEN + msg);
 		System.out.print(InterceptClient.shell());
 	}
 }

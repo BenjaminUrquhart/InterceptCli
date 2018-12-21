@@ -10,10 +10,10 @@ public class ColorUtil extends ANSI{
 	public static String toANSI(String text){
 		for(BubColor color : BubColor.values()){
 			if(color.equals(BubColor.RANDOM) && text.contains(BubColor.RANDOM.toString())){
-				text = Arrays.stream(text.split(BubColor.RANDOM.toString().replace("?", "\\?"))).reduce("", (out, in) -> out + in + BubColor.RANDOM.toANSI());
+				text = Arrays.stream(text.split(color.toString().replace("?", "\\?"))).reduce("", (out, in) -> out + in + color.toANSI());
 			}
 			else{
-				text = text.replace(color.toString(), color.toANSI());
+				text = text.replace(color.toString(), InterceptClient.TRUECOLOR ? color.toTrueColor() : color.toANSI());
 			}
 		}
 		return text;

@@ -17,8 +17,8 @@ public class InterceptClient {
 	private static String TOKEN = null;
 	private static final int PORT = 13373;
 	
-	public static final String SHELL = RESET + "root@%s~# ";
-	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false;
+	public static final String SHELL = GREEN + "root@%s~# ";
+	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false, TRUECOLOR = false;
 	
 	private static boolean showShell = false;
 	
@@ -129,6 +129,9 @@ public class InterceptClient {
 				if(arg.equalsIgnoreCase("debug")) {
 					DEBUG = true;
 				}
+				if(arg.equalsIgnoreCase("truecolor")) {
+					TRUECOLOR = true;
+				}
 			}
 		}
 		System.out.print(CLEAR_SCREEN + RESET);
@@ -147,6 +150,9 @@ public class InterceptClient {
 		}
 		if(IP.equals("127.0.0.1")){
 			System.out.println("Local mode enabled");
+		}
+		if(TRUECOLOR) {
+			System.out.println("TrueColor enabled. Watch everything break.");
 		}
 		conn = new Socket(IP, PORT);
 		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
