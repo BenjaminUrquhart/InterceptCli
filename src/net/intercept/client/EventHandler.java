@@ -3,6 +3,7 @@ package net.intercept.client;
 import org.json.JSONObject;
 
 import static net.intercept.client.ColorUtil.*;
+import static net.intercept.client.ANSI.*;
 
 public class EventHandler {
 
@@ -67,7 +68,7 @@ public class EventHandler {
 			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.RED + "You have been traced from " + json.getString("system") + ANSI.RESET);
 		}
 		else if(event.equals("chat")){
-			msg = GREEN + "[CHAT] " + msg + RESET_STR;
+			msg = GREEN + "[CHAT] " + msg + RESET;
 		}
 		else if(event.equals("cfg")) {
 			json.put("msg", BubColor.YELLOW + "Received config update event." + BubColor.RESET);
@@ -78,10 +79,10 @@ public class EventHandler {
 			System.out.println("Unknown event from data: " + json + "\n");
 		}
 		if(json.has("success")){
-			msg = (json.getBoolean("success") ? "" : RED + "[ERROR] ") + RESET_STR + msg;
+			msg = (json.getBoolean("success") ? "" : RED + "[ERROR] ") + RESET + msg;
 		}
 		if(broadcast){
-			msg = BLUE + "[BROADCAST] " + RESET_STR + msg;
+			msg = BLUE + "[BROADCAST] " + RESET + msg;
 		}
 		if(json.has("panic")){
 			msg = RED

@@ -41,7 +41,7 @@ public class MacroManager {
 		}
 		catch(Exception e){
 			System.out.println(YELLOW + "Failed to load macros: " + e);
-			Arrays.stream(e.getStackTrace()).forEach((trace) -> InterceptClient.debug(ColorUtil.YELLOW + trace));
+			Arrays.stream(e.getStackTrace()).forEach((trace) -> InterceptClient.debug(YELLOW.toString() + trace));
 			System.out.print(RESET);
 		}
 	}

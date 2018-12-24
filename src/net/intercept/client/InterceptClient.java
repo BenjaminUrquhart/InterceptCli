@@ -17,8 +17,10 @@ public class InterceptClient {
 	private static String TOKEN = null;
 	private static final int PORT = 13373;
 	
-	public static final String SHELL = GREEN + "root@%s~# ";
-	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false, TRUECOLOR = false;
+	public static final String SHELL = RESET + "root@%s~# ";
+	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false;
+	
+	public static ColorMode colorMode = ColorMode.EXTENDED;
 	
 	private static boolean showShell = false;
 	
@@ -86,7 +88,7 @@ public class InterceptClient {
 				}
 			}
 			catch(Exception e){
-				debug(YELLOW + e);
+				debug(YELLOW.toString() + e);
 				//Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + trace));
 				tries++;
 				if(tries == 10) {
@@ -99,8 +101,6 @@ public class InterceptClient {
 		}
 	}
 	public static void main(String[] arguments) throws Exception {
-		boolean triedToANSI = false;
-		//Reset ANSI on shutdown
 		Thread.currentThread().setName("Intercept Main Loop");
 		Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
 			System.out.println();
@@ -111,16 +111,26 @@ public class InterceptClient {
 			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(RED + "at " + element));
 			DEBUG = oldDebug;
 		});
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m")));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m"))); //Reset ANSI on shutdown
+		System.out.print(CLEAR_SCREEN + RESET);
+		setCursorPos(0,0);
 		if(arguments.length > 0){
 			for(String arg : arguments){
 				if(arg.equalsIgnoreCase("noansi")) {
-					triedToANSI = true;
+					System.out.println(RED
+							+ "#############################################\n"
+							+ "#                                           #\n"
+							+ "# ANSI is always enabled now, deal with it. #\n"
+							+ "#                                           #\n"
+							+ "#############################################\n" 
+							+ RESET);
 				}
 				if(arg.equalsIgnoreCase("local")){
+					System.out.println("Local mode enabled");
 					IP = "127.0.0.1";
 				}
 				if(arg.equalsIgnoreCase("mute")){
+					System.out.println("Sound disabled");
 					MUTE = true;
 				}
 				if(arg.equalsIgnoreCase("ogg")) {
@@ -129,31 +139,29 @@ public class InterceptClient {
 				if(arg.equalsIgnoreCase("debug")) {
 					DEBUG = true;
 				}
-				if(arg.equalsIgnoreCase("truecolor")) {
-					TRUECOLOR = true;
+				if(arg.toLowerCase().startsWith("color:")) {
+					try {
+						String color = arg.split("\\:")[1].toLowerCase();
+						switch(color) {
+						case "basic": colorMode = ColorMode.BASIC; break;
+						case "8bit": colorMode = ColorMode.BASIC; break;
+						case "8": colorMode = ColorMode.BASIC; break;
+						case "extended": colorMode = ColorMode.EXTENDED; break;
+						case "256bit": colorMode = ColorMode.EXTENDED; break;
+						case "256": colorMode = ColorMode.EXTENDED; break;
+						case "truecolor": colorMode = ColorMode.TRUECOLOR; break;
+						case "true": colorMode = ColorMode.TRUECOLOR; break;
+						default: System.out.println("Unknown color mode: " + color + ".\nAvailable modes: " + Arrays.toString(ColorMode.values()));
+						}
+					}
+					catch(Exception e) {
+						System.out.println(YELLOW + "Failed to parse color mode: " + e + RESET);
+						Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + "at " + trace));
+					}
 				}
 			}
 		}
-		System.out.print(CLEAR_SCREEN + RESET);
-		setCursorPos(0,0);
-		if(triedToANSI) {
-			System.out.println(RED
-					+ "#############################################\n"
-					+ "#                                           #\n"
-					+ "# ANSI is always enabled now, deal with it. #\n"
-					+ "#                                           #\n"
-					+ "#############################################\n" 
-					+ RESET);
-		}
-		if(MUTE){
-			System.out.println("Sound disabled");
-		}
-		if(IP.equals("127.0.0.1")){
-			System.out.println("Local mode enabled");
-		}
-		if(TRUECOLOR) {
-			System.out.println("TrueColor enabled. Watch everything break.");
-		}
+		System.out.println("Color mode: " + colorMode);
 		conn = new Socket(IP, PORT);
 		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		output = new PrintWriter(conn.getOutputStream());
@@ -221,10 +229,9 @@ public class InterceptClient {
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
 				ip = player.getString("ip");
-				if(!player.getString("ip").equals(player.getString("conn"))){
-					String msg = CYAN + "You are connected to an external system." + RESET;
+				if(!ip.equals(player.getString("conn"))){
 					EventHandler.connectedIP = player.getString("conn");
-					System.out.println(msg);
+					System.out.println(CYAN + "You are connected to an external system." + RESET);
 				}
 				else {
 					EventHandler.connectedIP = "localhost";
@@ -275,7 +282,7 @@ public class InterceptClient {
 				}
 				else if(line.equals("mute")){
 					MUTE = !MUTE;
-					System.out.println("Audio " + GREEN + (MUTE ? "enabled" : "disabled") + RESET);
+					System.out.println("Audio " + GREEN + (MUTE ? "disabled" : "enabled") + RESET);
 					if(MUTE){
 						listener.getSoundHandler().setVolume(0.0);
 					}
@@ -296,25 +303,25 @@ public class InterceptClient {
 							debug("----------------------------------------------------------------------------------------------------------------------- #");
 							debug(pad(
 									String.format("%sThread: %s%s%s - ID: %s%d%s - State: %s%s%s - Group: %s%s", 
-									BLUE, 
-									GREEN, 
+									BLUE.toBasic(), 
+									GREEN.toBasic(), 
 									thread.getName(),
-									BLUE, 
-									GREEN,
+									BLUE.toBasic(), 
+									GREEN.toBasic(),
 									thread.getId(),
-									BLUE, 
-									GREEN, 
+									BLUE.toBasic(), 
+									GREEN.toBasic(), 
 									String.valueOf(thread.getState()), 
-									BLUE, 
-									GREEN, 
+									BLUE.toBasic(), 
+									GREEN.toBasic(), 
 									String.valueOf(thread.getThreadGroup())))
 									+ CYAN + "#");
 							
 							if(trace.length == 0) {
-								debug(pad(YELLOW + "(no trace available)") + CYAN + "#");
+								debug(pad(YELLOW.toBasic() + "(no trace available)") + CYAN + "#");
 								return;
 							}
-							Arrays.stream(trace).forEach((element) -> debug(pad(YELLOW + element) + CYAN + "#"));
+							Arrays.stream(trace).forEach((element) -> debug(pad(YELLOW.toBasic() + element) + CYAN + "#"));
 						});
 						debug("----------------------------------------------------------------------------------------------------------------------- #");
 					}

@@ -31,8 +31,7 @@ public enum BubColor {
 		this.colorAWT = colorAWT;
 		this.rng = new Random();
 	}
-	@Override
-	public String toString(){
+	public String toString() {
 		return color;
 	}
 	public String toTrueColor() {
@@ -42,41 +41,24 @@ public enum BubColor {
 		return String.format("\u001b[38;2;%d;%d;%dm", colorAWT.getRed(), colorAWT.getGreen(), colorAWT.getBlue());
 	}
 	public String toANSI(){
-		switch(this){
-		case BLUE:
-			return ANSI.BLUE;
-		case GRAY:
-			return ANSI.WHITE;
-		case GREEN:
-			return ANSI.GREEN;
-		case LIGHT_BLUE:
-			return ANSI.BLUE;
-		case LIGHT_GREEN:
-			return ANSI.GREEN;
-		case LIGHT_PINK:
-			return ANSI.MAGENTA;
-		case LIGHT_RED:
-			return ANSI.RED;
-		case LIGHT_VIOLET:
-			return ANSI.MAGENTA;
-		case ORANGE:
-			return ANSI.YELLOW;
-		case PINK:
-			return ANSI.MAGENTA;
-		case RED:
-			return ANSI.RED;
-		case VIOLET:
-			return ANSI.MAGENTA;
-		case WHITE:
-			return ANSI.WHITE;
-		case YELLOW:
-			return ANSI.YELLOW;
-		case RESET:
-			return ANSI.GREEN;
-		case RANDOM:
-			BubColor out = null; do {out = values()[rng.nextInt(values().length)];}while(out.equals(RANDOM)); return out.toANSI();
-		default:
-			return "";
+		if(this.equals(RANDOM)) {
+			BubColor out = null; 
+			do {
+				out = values()[rng.nextInt(values().length)];
+			}
+			while(out.equals(RANDOM) || out.equals(RESET)); 
+			return out.toANSI();
+		}
+		else if(this.equals(RESET)) {
+			return ANSI.RESET;
+		}
+		else {
+			try {
+				return ANSI.valueOf(super.toString()).toString();
+			}
+			catch(Exception e) {
+				return "";
+			}
 		}
 	}
 }

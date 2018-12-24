@@ -2,7 +2,9 @@ package net.intercept.client;
 
 import java.util.Arrays;
 
-public class ColorUtil extends ANSI{
+import static net.intercept.client.ANSI.*;
+
+public class ColorUtil{
 
 	public static String stripBubColor(String text){
 		return text.replaceAll(SPLIT + ".", "");
@@ -13,12 +15,15 @@ public class ColorUtil extends ANSI{
 				text = Arrays.stream(text.split(color.toString().replace("?", "\\?"))).reduce("", (out, in) -> out + in + color.toANSI());
 			}
 			else{
-				text = text.replace(color.toString(), InterceptClient.TRUECOLOR ? color.toTrueColor() : color.toANSI());
+				text = text.replace(color.toString(), color.toANSI());
 			}
 		}
 		return text;
 	}
 	public static String replaceWeirdPeriod(String text) {
 		return text.replace(BubColor.RANDOM + ".", "");
+	}
+	public static String RED() {
+		return null;
 	}
 }
