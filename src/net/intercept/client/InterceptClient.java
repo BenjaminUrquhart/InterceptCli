@@ -31,6 +31,26 @@ public class InterceptClient {
 	
 	private static JSONObject auth;
 	
+	private static String ip, pass;
+	
+	public static void setIP(String IP) {
+		ip = IP;
+	}
+	public static void setPass(String password) {
+		pass = password;
+	}
+	public synchronized static JSONObject send(JSONObject json) {
+		if(json != null) {
+			output.println(json);
+			output.flush();
+		}
+		try {
+			return new JSONObject(input.readLine());
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
 	public static String shell(){
 		return showShell ? String.format(SHELL, EventHandler.connectedIP) : "";
 	}
@@ -144,10 +164,9 @@ public class InterceptClient {
 						String color = arg.split("\\:")[1].toLowerCase();
 						switch(color) {
 						case "basic": colorMode = ColorMode.BASIC; break;
-						case "8bit": colorMode = ColorMode.BASIC; break;
 						case "8": colorMode = ColorMode.BASIC; break;
 						case "extended": colorMode = ColorMode.EXTENDED; break;
-						case "256bit": colorMode = ColorMode.EXTENDED; break;
+						case "24bit": colorMode = ColorMode.EXTENDED; break;
 						case "256": colorMode = ColorMode.EXTENDED; break;
 						case "truecolor": colorMode = ColorMode.TRUECOLOR; break;
 						case "true": colorMode = ColorMode.TRUECOLOR; break;
@@ -161,6 +180,14 @@ public class InterceptClient {
 				}
 			}
 		}
+		try {
+			String colorTerm = System.getenv("COLORTERM");
+			if(colorTerm.equals("24bit") && colorMode.equals(ColorMode.TRUECOLOR)) {
+				System.out.println(YELLOW.toExtended() + "Warning: TrueColor support not detected. COLORTERM environemnt variable set to " + colorTerm);
+				System.out.println("Recommended mode: " + ColorMode.EXTENDED + RESET);
+			}
+		}
+		catch(Exception e) {}
 		System.out.println("Color mode: " + colorMode);
 		conn = new Socket(IP, PORT);
 		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -196,10 +223,8 @@ public class InterceptClient {
 				continue;
 			}
 			json.put(reg ? "register" : "login", auth);
-			output.println(json);
-			output.flush();
 			debug(json.toString().replace(auth.getString("password"), "[CENSORED]"));
-			json = new JSONObject(input.readLine());
+			json = send(json);
 			debug(json.has("token") ? json.toString().replace(json.getString("token"), "[CENSORED]") : json);
 			if(json.has("success")){
 				success = json.getBoolean("success");
@@ -213,18 +238,14 @@ public class InterceptClient {
 		json.remove("event");
 		json.remove("success");
 		TOKEN = json.getString("token");
-		output.println(json);
-		output.flush();
 		debug(json.toString().replace(json.getString("token"), "[CENSORED]"));
-		json = new JSONObject(input.readLine());
+		json = send(json);
 		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
 			double volume = 1;
 			if(json.has("cfg")) {
 				volume = json.getJSONObject("cfg").getDouble("vol");
 			}
-			output.println(new JSONObject().put("request", "command").put("cmd", "pass -l see"));
-			output.flush();
-			String ip = null, pass = new JSONObject(input.readLine()).getString("msg");
+			pass = send(new JSONObject().put("request", "command").put("cmd", "pass -l see")).getString("msg");
 			listener = new ReceiveHandler(input, volume);
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
@@ -268,7 +289,7 @@ public class InterceptClient {
 					else {
 						try {
 							listener.getSoundHandler().setTrack(line.split(" ")[1].toLowerCase().trim());
-							System.out.printf("%sNow playing: %s%s%s\n", WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
+							System.out.printf("%s%s%sNow playing: %s%s%s\n", CLEAR_LINE, RESET_CURSOR, WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
 						}
 						catch(Exception e) {
 							System.out.println("Failed to load track. Defaulting to \"peace\"");

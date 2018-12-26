@@ -83,6 +83,24 @@ public class EventHandler {
 		}
 		if(broadcast){
 			msg = BLUE + "[BROADCAST] " + RESET + msg;
+			if(msg.contains(
+					"Generating filesystem...\n" + 
+					"Updating...\n" + 
+					"Complete."
+					)) {
+				System.out.println(YELLOW + "Abandon detected." + RESET);
+				String ip = msg.split(" ", 3)[2].split("\\.\\.\\.", 2)[0], pass = InterceptClient.send(new JSONObject().put("request", "command").put("cmd", "pass see")).getString("msg");
+				if(connectedIP.equals("localhost")) {
+					InterceptClient.setIP(ip);
+					InterceptClient.setPass(pass);
+					InterceptClient.debug("Self: " + ip + " " + pass);
+					System.out.println(CYAN + "Main system abandoned. Updated " + GREEN + "self" + CYAN + " info" + RESET);
+				}
+				else {
+					connectedIP = ip;
+					System.out.println(ORANGE + "Owner of this system has abandoned. You have been connected to their new system." + RESET);
+				}
+			}
 		}
 		if(json.has("panic")){
 			msg = RED
