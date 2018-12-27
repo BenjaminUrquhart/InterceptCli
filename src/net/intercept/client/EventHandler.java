@@ -62,10 +62,10 @@ public class EventHandler {
 		}
 		else if(event.equals("command") || broadcast || event.equals("connect")){} //To suppress the Unknown Event message
 		else if(event.equals("traceStart")){
-			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.YELLOW + "You are being traced! Remote IP: " + json.getString("system") + ANSI.RESET);
+			System.out.println(ANSI.RESET_CURSOR + "" + ANSI.CLEAR_LINE + ANSI.YELLOW + "You are being traced! Remote IP: " + json.getString("system") + ANSI.RESET);
 		}
 		else if(event.equals("traceComplete")){
-			System.out.println(ANSI.RESET_CURSOR + ANSI.CLEAR_LINE + ANSI.RED + "You have been traced from " + json.getString("system") + ANSI.RESET);
+			System.out.println(ANSI.RESET_CURSOR + "" + ANSI.CLEAR_LINE + ANSI.RED + "You have been traced from " + json.getString("system") + ANSI.RESET);
 		}
 		else if(event.equals("chat")){
 			msg = GREEN + "[CHAT] " + msg + RESET;
@@ -118,7 +118,7 @@ public class EventHandler {
 			panic = false;
 			sound.setTrack("peace2");
 		}
-		System.out.print(RESET + CLEAR_LINE + RESET_CURSOR);
+		System.out.print(RESET + "" + CLEAR_LINE + RESET_CURSOR);
 		msg = msg.replace("\u200b", " ").replace("\t", " ").replace("\u00C2", "");
 		System.out.println(GREEN + msg);
 		System.out.print(InterceptClient.shell());

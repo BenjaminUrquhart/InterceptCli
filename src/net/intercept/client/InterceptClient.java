@@ -17,10 +17,10 @@ public class InterceptClient {
 	private static String TOKEN = null;
 	private static final int PORT = 13373;
 	
+	public static ColorMode colorMode = ColorMode.NONE;
+	
 	public static final String SHELL = RESET + "root@%s~# ";
 	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false;
-	
-	public static ColorMode colorMode = ColorMode.EXTENDED;
 	
 	private static boolean showShell = false;
 	
@@ -132,15 +132,35 @@ public class InterceptClient {
 			DEBUG = oldDebug;
 		});
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m"))); //Reset ANSI on shutdown
-		System.out.print(CLEAR_SCREEN + RESET);
+		System.out.print(CLEAR_SCREEN + "" + RESET);
 		setCursorPos(0,0);
 		if(arguments.length > 0){
 			for(String arg : arguments){
+				if(arg.toLowerCase().startsWith("color:")) {
+					try {
+						String color = arg.split("\\:")[1].toLowerCase();
+						switch(color) {
+						case "none": colorMode = ColorMode.NONE; break;
+						case "basic": colorMode = ColorMode.BASIC; break;
+						case "8": colorMode = ColorMode.BASIC; break;
+						case "extended": colorMode = ColorMode.EXTENDED; break;
+						case "24bit": colorMode = ColorMode.EXTENDED; break;
+						case "256": colorMode = ColorMode.EXTENDED; break;
+						case "truecolor": colorMode = ColorMode.TRUECOLOR; break;
+						case "true": colorMode = ColorMode.TRUECOLOR; break;
+						default: colorMode = ColorMode.EXTENDED; System.out.println("Unknown color mode: " + color + ".\nAvailable modes: " + Arrays.toString(ColorMode.values()));
+						}
+					}
+					catch(Exception e) {
+						System.out.println(YELLOW + "Failed to parse color mode: " + e + RESET);
+						Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + "at " + trace));
+					}
+				}
 				if(arg.equalsIgnoreCase("noansi")) {
 					System.out.println(RED
 							+ "#############################################\n"
 							+ "#                                           #\n"
-							+ "# ANSI is always enabled now, deal with it. #\n"
+							+ "# noansi has been replaced with color:none  #\n"
 							+ "#                                           #\n"
 							+ "#############################################\n" 
 							+ RESET);
@@ -159,25 +179,6 @@ public class InterceptClient {
 				if(arg.equalsIgnoreCase("debug")) {
 					DEBUG = true;
 				}
-				if(arg.toLowerCase().startsWith("color:")) {
-					try {
-						String color = arg.split("\\:")[1].toLowerCase();
-						switch(color) {
-						case "basic": colorMode = ColorMode.BASIC; break;
-						case "8": colorMode = ColorMode.BASIC; break;
-						case "extended": colorMode = ColorMode.EXTENDED; break;
-						case "24bit": colorMode = ColorMode.EXTENDED; break;
-						case "256": colorMode = ColorMode.EXTENDED; break;
-						case "truecolor": colorMode = ColorMode.TRUECOLOR; break;
-						case "true": colorMode = ColorMode.TRUECOLOR; break;
-						default: System.out.println("Unknown color mode: " + color + ".\nAvailable modes: " + Arrays.toString(ColorMode.values()));
-						}
-					}
-					catch(Exception e) {
-						System.out.println(YELLOW + "Failed to parse color mode: " + e + RESET);
-						Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + "at " + trace));
-					}
-				}
 			}
 		}
 		try {
@@ -187,7 +188,9 @@ public class InterceptClient {
 				System.out.println("Recommended mode: " + ColorMode.EXTENDED + RESET);
 			}
 		}
-		catch(Exception e) {}
+		catch(Exception e) {
+			System.out.println(YELLOW + "Failed to get COLORTERM environment variable." + RESET);
+		}
 		System.out.println("Color mode: " + colorMode);
 		conn = new Socket(IP, PORT);
 		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));

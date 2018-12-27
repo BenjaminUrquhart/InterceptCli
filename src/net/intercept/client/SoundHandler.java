@@ -138,7 +138,7 @@ public class SoundHandler implements Sound{
 			System.out.printf("%s%s%sVolume: %s%s\n", RESET_CURSOR, CLEAR_LINE, GREEN, (volume*10.0 + "%"), RESET);
 		}
 		else {
-			System.out.println(RESET_CURSOR + CLEAR_LINE + YELLOW + "Volume control not supported on this system." + RESET);
+			System.out.println(RESET_CURSOR + "" + CLEAR_LINE + YELLOW + "Volume control not supported on this system." + RESET);
 		}
 	}
 	public void setTrack(String track){

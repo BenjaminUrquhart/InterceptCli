@@ -50,7 +50,7 @@ public enum BubColor {
 			return out.toANSI();
 		}
 		else if(this.equals(RESET)) {
-			return ANSI.RESET;
+			return ANSI.RESET.toString();
 		}
 		else {
 			try {

@@ -3,7 +3,10 @@ package net.intercept.client;
 import java.awt.Color;
 
 public enum ANSI {
-	
+	RESET("\u001b[0;1m"),
+	CLEAR_LINE("\u001b[2K"),
+	CLEAR_SCREEN("\u001b[2J"),
+	RESET_CURSOR("\u001b[1000D"),
 	BLACK("\u001b[30;1m", "\u001b[38;5;0m", new Color(0,0,0)),
 	RED("\u001b[31;1m", "\u001b[38;5;1m", new Color(255,0,0)),
 	GREEN("\u001b[32;1m", "\u001b[38;5;40m", new Color(0,255,0)),
@@ -25,10 +28,6 @@ public enum ANSI {
 	LIGHT_VIOLET(null, "\u001b[38;5;60m", new Color(99,82,148), MAGENTA);
 	
 	public static final String SPLIT = "\u00AC";
-	public static final String RESET = "\u001b[0;1m";
-	public static final String CLEAR_LINE = "\u001b[2K";
-	public static final String CLEAR_SCREEN = "\u001b[2J";
-	public static final String RESET_CURSOR = "\u001b[1000D";
 	
 	private final String basic,extended,truecolor;
 	private final ANSI substitute;
@@ -50,13 +49,13 @@ public enum ANSI {
 	}
 	
 	public String toString() {
-		String out = null;
 		switch(InterceptClient.colorMode) {
-		case BASIC: out = this.toBasic(); break;
-		case EXTENDED: out = this.toExtended(); break;
-		case TRUECOLOR: out = this.toTrueColor(); break;
+		case BASIC: return this.toBasic();
+		case EXTENDED: return this.toExtended();
+		case TRUECOLOR: return this.toTrueColor();
+		case NONE: return this.equals(CLEAR_LINE) ? "\n" : "";
+		default: return "";
 		}
-		return out;
 	}
 	public String toBasic() {
 		return basic == null ? this.getSubstitute().toBasic() : basic;
@@ -71,6 +70,7 @@ public enum ANSI {
 		return substitute;
 	}
 	public static void setCursorPos(int line, int column) {
-		System.out.printf("\033[%d;%dH%s", line, column, RESET_CURSOR);
+		if(!InterceptClient.colorMode.equals(ColorMode.NONE)) 
+			System.out.printf("\033[%d;%dH%s", line, column, RESET_CURSOR);
 	}
 }

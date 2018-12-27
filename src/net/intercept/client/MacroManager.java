@@ -37,7 +37,7 @@ public class MacroManager {
 					InterceptClient.debug("Failed to load macro " + obj + ":\n" + e);
 				}
 			});
-			System.out.println(CLEAR_LINE + RESET_CURSOR + GREEN + "Loaded " + macros.values().size() + " macros.");
+			System.out.println(CLEAR_LINE + "" + RESET_CURSOR + GREEN + "Loaded " + macros.values().size() + " macros.");
 		}
 		catch(Exception e){
 			System.out.println(YELLOW + "Failed to load macros: " + e);

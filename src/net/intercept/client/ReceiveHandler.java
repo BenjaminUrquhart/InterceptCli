@@ -45,7 +45,7 @@ public class ReceiveHandler extends Thread{
 		}
 		catch(NullPointerException | SocketException e){
 			Thread.getDefaultUncaughtExceptionHandler().uncaughtException(this, e);
-			System.out.println(RESET_CURSOR + CLEAR_LINE + YELLOW + "Connection to server dropped unexpectedly");
+			System.out.println(RESET_CURSOR + "" + CLEAR_LINE + YELLOW + "Connection to server dropped unexpectedly");
 			InterceptClient.reconnect();
 			return;
 		}
