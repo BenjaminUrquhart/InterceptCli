@@ -19,6 +19,7 @@ public class SoundHandlerOgg implements Sound{
 		this.set = set;
 		this.track = track;
 		player.cleanUp();
+		play();
 	}
 	@Override
 	public String getTrack() {
@@ -40,7 +41,7 @@ public class SoundHandlerOgg implements Sound{
 		case "peace2": return "peace";
 		case "breach": return "breach_loop";
 		case "breach_loop": return "breach";
-		case "breach_loop_concat": return track;
+		//case "breach_loop_concat": return track;
 		default: return "peace";
 		}
 	}

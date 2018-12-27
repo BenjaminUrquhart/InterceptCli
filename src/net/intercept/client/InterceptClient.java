@@ -56,7 +56,7 @@ public class InterceptClient {
 	}
 	public static void debug(Object text) {
 		if(DEBUG) {
-			System.out.printf("%s%s%s[DEBUG] %s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, String.valueOf(text), RESET, shell());
+			System.out.printf("%s%s%s[DEBUG] %s%s: %s%s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, YELLOW, Thread.currentThread().getStackTrace()[2].getClassName(), CYAN, String.valueOf(text), RESET, shell());
 		}
 	}
 	private static String pad(String in) {

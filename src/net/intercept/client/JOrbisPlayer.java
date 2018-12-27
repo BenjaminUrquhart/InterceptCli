@@ -551,6 +551,9 @@ public class JOrbisPlayer extends Thread
 					// Here is where we process the packets.
 					processPackets: while(true)
 					{
+						if(joggPacket == null) {
+							break;
+						}
 						switch(joggStreamState.packetout(joggPacket))
 						{
 							// Is it a hole in the data?
@@ -638,6 +641,7 @@ public class JOrbisPlayer extends Thread
 		}
 		InterceptClient.debug("Done cleaning up.");
 		if(soundHandler.set) {
+			soundHandler.set = false;
 			soundHandler.play();
 		}
 		else {
