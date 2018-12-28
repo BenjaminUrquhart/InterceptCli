@@ -13,7 +13,7 @@ public class EventHandler {
 	
 	public EventHandler(double volume) {
 		if(sound == null) {
-			sound = InterceptClient.OGG ? new SoundHandlerOgg() : new SoundHandler(volume);
+			sound = InterceptClient.OGG ? new SoundHandlerOgg(volume) : new SoundHandler(volume);
 			this.panic = false;
 		}
 	}

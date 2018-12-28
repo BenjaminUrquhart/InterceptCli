@@ -1,37 +1,51 @@
 package net.intercept.client;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import static net.intercept.client.ANSI.*;
 
 public class JOrbisCleanupThread extends Thread {
 
 	private volatile boolean run;
-	private List<Thread> toKill;
+	private Set<Thread> toKill;
 	
 	public JOrbisCleanupThread() {
-		this.setName("Intercept Audio Thread Cleanup");
-		this.toKill = new ArrayList<>();
+		this.setName("Intercept Audio Cleanup");
+		this.toKill = new LinkedHashSet<>();
 	}
 	@Override
 	public void start() {
+		InterceptClient.debug(GREEN + "Starting JOrbis cleanup thread...");
 		this.run = true;
 		super.start();
 	}
 	@Override
 	public void run() {
+		InterceptClient.debug(GREEN + "Started");
 		while(run) {
 			try {
+				toKill.clear();
 				Thread.getAllStackTraces().forEach((thread, trace) -> {
-					toKill.add(thread);
+					if(thread instanceof JOrbisPlayer) {
+						toKill.add(thread);
+					}
 				});
-				toKill = toKill.stream().filter((thread) -> thread instanceof JOrbisPlayer).collect(Collectors.toList());
 				if(toKill.size() > 1) {
-					InterceptClient.debug("Found " + (toKill.size() - 1) + " excess JOrbis threads");
+					InterceptClient.debug(ORANGE + "Found " + (toKill.size() - 1) + " excess JOrbis threads");
 				}
 				while(toKill.size() > 1) {
 					try {
-						((JOrbisPlayer)toKill.remove(0)).cleanUp();
+						new LinkedHashSet<Thread>(toKill).forEach((thread) -> {
+							if(toKill.size() == 1) {
+								return;
+							}
+							((JOrbisPlayer)thread).cleanUp(true);
+							toKill.remove(thread);
+						});
+					}
+					catch(NullPointerException e) {
+						toKill.clear();
 					}
 					catch(Exception e) {
 						InterceptClient.debug("Failed to kill excess process: " + e);
@@ -41,9 +55,6 @@ public class JOrbisCleanupThread extends Thread {
 			}
 			catch(Exception e) {}
 		}
-	}/*
-	@Override
-	public void stop() {
-		this.run = false;
-	}*/
+		run = this.isInterrupted();
+	}
 }

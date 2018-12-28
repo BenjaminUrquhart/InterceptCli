@@ -41,12 +41,16 @@ package net.intercept.client;
 import com.jcraft.jogg.*;
 import com.jcraft.jorbis.*;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.io.IOException;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
+
+import static net.intercept.client.ANSI.*;
 
 /**
  * The <code>JOrbisPlayer</code> thread class will simply download and play
@@ -112,7 +116,7 @@ public class JOrbisPlayer extends Thread
 	 */
 	JOrbisPlayer(InputStream stream, SoundHandlerOgg soundHandler)
 	{
-		this.setName("JOrbis Thread " + this.getName().split("-")[1]);
+		this.setName("Intercept JOrbis Thread " + this.getName().split("-")[1]);
 		this.soundHandler = soundHandler;
 		this.inputStream = stream;
 	}
@@ -172,7 +176,6 @@ public class JOrbisPlayer extends Thread
 		 * how the size of this new buffer is different from bufferSize.
 		 */
 		buffer = joggSyncState.data;
-
 		InterceptClient.debug("Done initializing JOrbis.");
 	}
 
@@ -492,7 +495,19 @@ public class JOrbisPlayer extends Thread
 
 		// Start it.
 		outputLine.start();
-
+		InterceptClient.debug(YELLOW + "Controls: " + Arrays.toString(outputLine.getControls()));
+		try {
+			soundHandler.setVolumeControl((FloatControl) outputLine.getControl(FloatControl.Type.VOLUME), false);
+		}
+		catch(Exception e) {
+			try {
+				InterceptClient.debug(YELLOW + "Control type Volume does not exist, trying Master Gain...");
+				soundHandler.setVolumeControl((FloatControl) outputLine.getControl(FloatControl.Type.MASTER_GAIN), true);
+			}
+			catch(Exception exec) {
+				InterceptClient.debug(YELLOW + "Control type Master Gain does not exist. Volume control disabled.");
+			}
+		}
 		/*
 		 * We create the PCM variables. The index is an array with the same
 		 * length as the number of audio channels.
@@ -620,7 +635,10 @@ public class JOrbisPlayer extends Thread
 	 * A clean-up method, called when everything is finished. Clears the
 	 * JOgg/JOrbis objects and closes the <code>InputStream</code>.
 	 */
-	public void cleanUp()
+	public void cleanUp() {
+		cleanUp(false);
+	}
+	public void cleanUp(boolean killed)
 	{
 		InterceptClient.debug("Cleaning up.");
 
@@ -640,12 +658,13 @@ public class JOrbisPlayer extends Thread
 		{
 		}
 		InterceptClient.debug("Done cleaning up.");
+		if(killed) return;
 		if(soundHandler.set) {
 			soundHandler.set = false;
 			soundHandler.play();
 		}
 		else {
-			soundHandler.setTrack(soundHandler.getNext(), false);
+			soundHandler.nextTrack();
 		}
 	}
 

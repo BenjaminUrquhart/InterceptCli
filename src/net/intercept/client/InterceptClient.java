@@ -125,7 +125,7 @@ public class InterceptClient {
 		Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
 			System.out.println();
 			boolean oldDebug = DEBUG;
-			DEBUG = true;
+			DEBUG = DEBUG ? true : !(thread instanceof JOrbisPlayer);
 			debug(RED + "An exception was thrown in the thread " + YELLOW + thread.getName() + ":");
 			debug(RED + e.toString());
 			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(RED + "at " + element));
@@ -281,23 +281,29 @@ public class InterceptClient {
 					continue;
 				}
 				else if(line.startsWith("track")) {
-					if(!line.trim().contains(" ")) {
-						System.out.println("Usage: track [breach|peace|peace2|breach_loop]");
-						System.out.printf("%sCurrect track: %s%s%s\n", WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
-					}
-					else if(MUTE || listener.getSoundHandler().getTrack().equals("None")) {
-						System.out.printf("%sCannot set a track when audio is disabled%s\n", YELLOW, RESET);
-						MUTE = true;
-					}
-					else {
-						try {
-							listener.getSoundHandler().setTrack(line.split(" ")[1].toLowerCase().trim());
-							System.out.printf("%s%s%sNow playing: %s%s%s\n", CLEAR_LINE, RESET_CURSOR, WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
+					try {
+						if(!line.trim().contains(" ")) {
+							System.out.println("Usage: track [breach|peace|peace2|breach_loop]");
+							System.out.printf("%sCurrect track: %s%s%s\n", WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
 						}
-						catch(Exception e) {
-							System.out.println("Failed to load track. Defaulting to \"peace\"");
-							listener.getSoundHandler().setTrack("peace");
+						else if(MUTE || listener.getSoundHandler().getTrack().equals("None")) {
+							System.out.printf("%sCannot set a track when audio is disabled%s\n", YELLOW, RESET);
+							MUTE = true;
 						}
+						else {
+							try {
+								listener.getSoundHandler().setTrack(line.split(" ")[1].toLowerCase().trim());
+								System.out.printf("%s%s%sNow playing: %s%s%s\n", CLEAR_LINE, RESET_CURSOR, WHITE, GREEN, listener.getSoundHandler().getTrack(), RESET);
+							}
+							catch(Exception e) {
+								System.out.println("Failed to load track. Defaulting to \"peace\"");
+								listener.getSoundHandler().setTrack("peace");
+							}
+						}
+					}
+					catch(Exception e) {
+						System.out.printf("%s%s%sSomething really went wrong while setting that track.", CLEAR_LINE, RESET_CURSOR, RED);
+						Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
 					}
 					System.out.print(shell());
 				}
