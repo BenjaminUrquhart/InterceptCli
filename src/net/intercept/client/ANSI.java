@@ -25,7 +25,8 @@ public enum ANSI {
 	PINK(null, "\u001b[38;5;5m", new Color(255,0,255), MAGENTA),
 	LIGHT_PINK(null, "\u001b[38;5;13m", new Color(255,135,255), MAGENTA),
 	VIOLET(null, "\u001b[38;5;57m", new Color(138,41,224), MAGENTA),
-	LIGHT_VIOLET(null, "\u001b[38;5;60m", new Color(99,82,148), MAGENTA);
+	LIGHT_VIOLET(null, "\u001b[38;5;60m", new Color(99,82,148), MAGENTA),
+	CORRUPT(null, "\u001b[38;5;198m", new Color(232,61,120), LIGHT_RED);
 	
 	public static final String SPLIT = "\u00AC";
 	
