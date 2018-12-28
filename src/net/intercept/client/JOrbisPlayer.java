@@ -629,6 +629,10 @@ public class JOrbisPlayer extends Thread
 			}
 		}
 		InterceptClient.debug("Done reading the body.");
+		try{
+			Thread.sleep(350);
+		}
+		 catch(Exception e) {}
 	}
 
 	/**
@@ -641,21 +645,35 @@ public class JOrbisPlayer extends Thread
 	public void cleanUp(boolean killed)
 	{
 		InterceptClient.debug("Cleaning up.");
-
-		// Clear the necessary JOgg/JOrbis objects.
-		joggStreamState.clear();
-		jorbisBlock.clear();
-		jorbisDspState.clear();
-		jorbisInfo.clear();
-		joggSyncState.clear();
-
-		// Closes the stream.
-		try
-		{
-			if(inputStream != null) inputStream.close();
+		try {
+			joggStreamState.clear();
 		}
-		catch(Exception e)
-		{
+		catch(Exception e){
+			InterceptClient.debug(YELLOW + "" + e);
+		}
+		try {
+			jorbisBlock.clear();
+		}
+		catch(Exception e) {
+			InterceptClient.debug(YELLOW + "" + e);
+		}
+		try {
+			jorbisDspState.clear();
+		}
+		catch(Exception e) {
+			InterceptClient.debug(YELLOW + "" + e);
+		}
+		try {
+			jorbisInfo.clear();
+		}
+		catch(Exception e) {
+			InterceptClient.debug(YELLOW + "" + e);
+		}
+		try {
+			joggSyncState.clear();
+		}
+		catch(Exception e) {
+			InterceptClient.debug(YELLOW + "" + e);
 		}
 		InterceptClient.debug("Done cleaning up.");
 		if(killed) return;

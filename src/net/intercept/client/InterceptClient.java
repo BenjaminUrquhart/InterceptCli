@@ -52,11 +52,15 @@ public class InterceptClient {
 		}
 	}
 	public static String shell(){
-		return showShell ? String.format(RESET + SHELL, EventHandler.connectedIP) : "";
+		return showShell ? String.format(GREEN.toBasic() + SHELL + RESET, EventHandler.connectedIP) : "";
 	}
 	public static void debug(Object text) {
+		debug(text, true);
+	}
+	public static void debug(Object text, boolean method) {
 		if(DEBUG) {
-			System.out.printf("%s%s%s[DEBUG] %s%s: %s%s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, YELLOW, Thread.currentThread().getStackTrace()[2].getClassName(), CYAN, String.valueOf(text), RESET, shell());
+			StackTraceElement[] trace =  Thread.currentThread().getStackTrace();
+			System.out.printf("%s%s%s[DEBUG] %s%s%s%s%s: %s%s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, GRAY, trace[2].getClassName(), method ? ORANGE + "." : "", method ? trace[3].getMethodName() + "()" : "", RESET, CYAN, String.valueOf(text), RESET, shell());
 		}
 	}
 	private static String pad(String in) {
@@ -123,9 +127,13 @@ public class InterceptClient {
 	public static void main(String[] arguments) throws Exception {
 		Thread.currentThread().setName("Intercept Main Loop");
 		Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
-			System.out.println();
+			if((thread instanceof JOrbisPlayer) && (e instanceof NullPointerException)) {
+				debug(ORANGE + "Supressed an NPE from an audio thread");
+				return;
+			}
 			boolean oldDebug = DEBUG;
-			DEBUG = DEBUG ? true : !(thread instanceof JOrbisPlayer);
+			DEBUG = true;
+			System.out.println();
 			debug(RED + "An exception was thrown in the thread " + YELLOW + thread.getName() + ":");
 			debug(RED + e.toString());
 			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(RED + "at " + element));
@@ -330,7 +338,7 @@ public class InterceptClient {
 					if(DEBUG) {
 						Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
 						traces.forEach((thread, trace) -> {
-							debug("----------------------------------------------------------------------------------------------------------------------- #");
+							debug("----------------------------------------------------------------------------------------------------------------------- #", false);
 							debug(pad(
 									String.format("%sThread: %s%s%s - ID: %s%d%s - State: %s%s%s - Group: %s%s", 
 									BLUE.toBasic(), 
@@ -345,15 +353,15 @@ public class InterceptClient {
 									BLUE.toBasic(), 
 									GREEN.toBasic(), 
 									String.valueOf(thread.getThreadGroup())))
-									+ CYAN + "#");
+									+ CYAN + "#", false);
 							
 							if(trace.length == 0) {
-								debug(pad(YELLOW.toBasic() + "(no trace available)") + CYAN + "#");
+								debug(pad(YELLOW.toBasic() + "(no trace available)") + CYAN + "#", false);
 								return;
 							}
-							Arrays.stream(trace).forEach((element) -> debug(pad(YELLOW.toBasic() + element) + CYAN + "#"));
+							Arrays.stream(trace).forEach((element) -> debug(pad(YELLOW.toBasic() + element) + CYAN + "#", false));
 						});
-						debug("----------------------------------------------------------------------------------------------------------------------- #");
+						debug("----------------------------------------------------------------------------------------------------------------------- #", false);
 					}
 					else {
 						System.out.println(YELLOW + "Please enable debug mode first");

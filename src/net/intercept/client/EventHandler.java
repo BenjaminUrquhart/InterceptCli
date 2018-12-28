@@ -38,7 +38,7 @@ public class EventHandler {
 		boolean broadcast = event.equals("broadcast");
 		if(json.has("msg")){
 			msg = json.getString("msg").replace("\u001b", "\\u001b");
-			InterceptClient.debug(msg);
+			//InterceptClient.debug(msg);
 			msg = toANSI(msg);
 		}
 		if(event.equals("error")){

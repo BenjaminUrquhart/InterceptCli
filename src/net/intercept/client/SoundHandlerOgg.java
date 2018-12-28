@@ -33,7 +33,9 @@ public class SoundHandlerOgg implements Sound{
 	public void setTrack(String track, boolean set) {
 		this.set = set;
 		this.track = track;
-		player.cleanUp();
+		if(set) {
+			player.cleanUp();
+		}
 		play();
 	}
 	public void nextTrack() {
