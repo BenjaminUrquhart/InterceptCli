@@ -60,7 +60,7 @@ public class InterceptClient {
 	public static void debug(Object text, boolean method) {
 		if(DEBUG) {
 			StackTraceElement[] trace =  Thread.currentThread().getStackTrace();
-			System.out.printf("%s%s%s[DEBUG] %s%s%s%s%s: %s%s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, GRAY, trace[2].getClassName(), method ? ORANGE + "." : "", method ? trace[3].getMethodName() + "()" : "", RESET, CYAN, String.valueOf(text), RESET, shell());
+			System.out.printf("%s%s%s[DEBUG] %s%s%s%s%s: %s%s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, GRAY, trace[method ? 3 : 2].getClassName(), method ? ORANGE + "." : "", method ? trace[3].getMethodName() + "()" : "", RESET, CYAN, String.valueOf(text), RESET, shell());
 		}
 	}
 	private static String pad(String in) {
