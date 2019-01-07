@@ -88,8 +88,8 @@ public class EventHandler {
 					"Updating...\n" + 
 					"Complete."
 					)) {
-				System.out.println(YELLOW + "Abandon detected." + RESET);
-				String ip = msg.split(" ", 3)[2].split("\\.\\.\\.", 2)[0], pass = InterceptClient.send(new JSONObject().put("request", "command").put("cmd", "pass see")).getString("msg");
+				System.out.printf("%s%s%sAbandon detected.%s", CLEAR_LINE, RESET_CURSOR, YELLOW, RESET);
+				String ip = msg.split(" ", 3)[2].replace("...", "").split("\n")[0], pass = InterceptClient.send(new JSONObject().put("request", "command").put("cmd", "pass see")).getString("msg");
 				if(connectedIP.equals("localhost")) {
 					InterceptClient.setIP(ip);
 					InterceptClient.setPass(pass);
@@ -97,8 +97,7 @@ public class EventHandler {
 					System.out.println(CYAN + "Main system abandoned. Updated " + GREEN + "self" + CYAN + " info" + RESET);
 				}
 				else {
-					connectedIP = ip;
-					System.out.println(ORANGE + "Owner of this system has abandoned. You have been connected to their new system." + RESET);
+					System.out.printf("%s%s%sOwner of this system has abandoned. New IP: %s%s%s", CLEAR_LINE, RESET_CURSOR, ORANGE, GREEN, ip, RESET);
 				}
 			}
 		}
@@ -108,7 +107,7 @@ public class EventHandler {
 					+ RESET
 					+ "\n" + msg;
 			panic = true;
-			sound.setTrack("breach_loop_concat");
+			sound.setTrack(sound instanceof SoundHandlerOgg ? "breach" : "breach_loop_concat");
 		}
 		if(json.has("panicEnd")){
 			msg = GREEN
