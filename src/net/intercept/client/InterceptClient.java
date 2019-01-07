@@ -5,11 +5,18 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Scanner;
+
+import static net.intercept.client.color.ANSI.*;
+
 import java.io.*;
 
 import org.json.JSONObject;
 
-import static net.intercept.client.ANSI.*;
+import net.intercept.client.audio.JOrbisPlayer;
+import net.intercept.client.color.ColorMode;
+import net.intercept.client.macros.MacroManager;
+import net.intercept.client.networking.EventHandler;
+import net.intercept.client.networking.ReceiveHandler;
 
 public class InterceptClient {
 
@@ -218,19 +225,19 @@ public class InterceptClient {
 			json = new JSONObject();
 			auth = new JSONObject();
 			json.put("request", "auth");
-			System.out.print("Username: ");
+			System.out.print(GREEN + "Username: ");
 			auth.put("username", sc.nextLine());
 			if(System.console() == null){System.out.print("Password: ");}
 			auth.put("password", System.console() == null ? sc.nextLine() : new String(System.console().readPassword("Password: ")));
 			if(reg) {
 				if(System.console() == null){System.out.print("Retype password: ");}
 				if(!auth.getString("password").equals(System.console() == null ? sc.nextLine() : new String(System.console().readPassword("Retype password: ")))) {
-					System.out.println("Passwords do not match");
+					System.out.println(RED + "Passwords do not match");
 					continue;
 				}
 			}
 			if(auth.getString("password").isEmpty()) {
-				System.out.println("No password provided");
+				System.out.println(RED + "No password provided");
 				continue;
 			}
 			json.put(reg ? "register" : "login", auth);
@@ -241,7 +248,7 @@ public class InterceptClient {
 				success = json.getBoolean("success");
 			}
 			if(!success){
-				System.out.println(json.getString("error"));
+				System.out.println(RED + json.getString("error"));
 			}
 		}
 		json.put("request", "connect");
