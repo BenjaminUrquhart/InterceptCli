@@ -4,7 +4,6 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
-import java.util.Scanner;
 
 import static net.intercept.client.color.ANSI.*;
 
@@ -17,6 +16,7 @@ import net.intercept.client.color.ColorMode;
 import net.intercept.client.macros.MacroManager;
 import net.intercept.client.networking.EventHandler;
 import net.intercept.client.networking.ReceiveHandler;
+import net.intercept.client.util.Input;
 import net.intercept.client.util.Timestamps;
 
 public class InterceptClient {
@@ -154,7 +154,7 @@ public class InterceptClient {
 		}));
 		System.out.print(CLEAR_SCREEN + "" + RESET);
 		setCursorPos(0,0);
-		Scanner sc = null;
+		Input sc = null;
 		if(arguments.length > 0){
 			for(String arg : arguments){
 				if(arg.toLowerCase().equalsIgnoreCase("timestamps")) {
@@ -163,11 +163,11 @@ public class InterceptClient {
 				}
 				if(arg.toLowerCase().equals("gui")) {
 					try {
-						sc = new Scanner((InputStream)InterceptClient.class.getClassLoader().loadClass("net.intercept.gui.InterceptX").getDeclaredMethod("enable").invoke(null));
+						sc = new Input(net.intercept.gui.InterceptX.enable());
 						colorMode = ColorMode.GUI;
 					}
 					catch(Exception e) {
-						System.out.println("Failed to find GUI class. Defaulting to CLI");
+						System.out.println("Failed to start GUI. Defaulting to CLI");
 						debug(e);
 						Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + "at " + trace));
 					}
@@ -237,7 +237,7 @@ public class InterceptClient {
 		output = new PrintWriter(conn.getOutputStream());
 		JSONObject json = new JSONObject(input.readLine());
 		if(sc == null) {
-			sc = new Scanner(System.in);
+			sc = new Input(System.in);
 		}
 		debug("Client ID: " + json.getString("client_id"));
 		debug("Client type: " + json.getString("client_type"));
@@ -486,14 +486,12 @@ public class InterceptClient {
 				System.out.println("An error occurred while logging in!");
 				System.out.println(json.getString("error"));
 				conn.close();
-				sc.close();
 				System.exit(1);
 			}
 			else{
 				System.out.println("Received an unknown response from the server!");
 				System.out.println(json);
 				conn.close();
-				sc.close();
 				System.exit(1);
 			}
 		}
