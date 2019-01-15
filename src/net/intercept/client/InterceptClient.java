@@ -17,6 +17,7 @@ import net.intercept.client.color.ColorMode;
 import net.intercept.client.macros.MacroManager;
 import net.intercept.client.networking.EventHandler;
 import net.intercept.client.networking.ReceiveHandler;
+import net.intercept.client.util.Timestamps;
 
 public class InterceptClient {
 
@@ -146,12 +147,36 @@ public class InterceptClient {
 			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(RED + "at " + element));
 			DEBUG = oldDebug;
 		});
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println("\nlogout\u001b[0m"))); //Reset ANSI on shutdown
+		//Reset ANSI on shutdown and disable time-stamping
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			Timestamps.disable();
+			System.out.println("\nlogout\u001b[0m");
+		}));
 		System.out.print(CLEAR_SCREEN + "" + RESET);
 		setCursorPos(0,0);
+		Scanner sc = null;
 		if(arguments.length > 0){
 			for(String arg : arguments){
+				if(arg.toLowerCase().equalsIgnoreCase("timestamps")) {
+					Timestamps.enable();
+					System.out.println("Timestamps enabled");
+				}
+				if(arg.toLowerCase().equals("gui")) {
+					try {
+						sc = new Scanner((InputStream)InterceptClient.class.getClassLoader().loadClass("net.intercept.gui.InterceptX").getDeclaredMethod("enable").invoke(null));
+						colorMode = ColorMode.GUI;
+					}
+					catch(Exception e) {
+						System.out.println("Failed to find GUI class. Defaulting to CLI");
+						debug(e);
+						Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + "at " + trace));
+					}
+				}
 				if(arg.toLowerCase().startsWith("color:")) {
+					if(colorMode == ColorMode.GUI) {
+						System.out.println("Can't set the color mode when the GUI is enabled");
+						continue;
+					}
 					try {
 						String color = arg.split("\\:")[1].toLowerCase();
 						switch(color) {
@@ -211,7 +236,9 @@ public class InterceptClient {
 		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		output = new PrintWriter(conn.getOutputStream());
 		JSONObject json = new JSONObject(input.readLine());
-		Scanner sc = new Scanner(System.in);
+		if(sc == null) {
+			sc = new Scanner(System.in);
+		}
 		debug("Client ID: " + json.getString("client_id"));
 		debug("Client type: " + json.getString("client_type"));
 		debug("Date: " + new Date(json.getLong("date")));

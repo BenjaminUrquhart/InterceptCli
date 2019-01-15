@@ -32,12 +32,14 @@ public enum ANSI {
 	
 	private final String basic,extended,truecolor;
 	private final ANSI substitute;
+	private final Color color;
 	
 	private ANSI(String basic, String extended, Color truecolor, ANSI substitute) {
 		this.basic = basic;
 		this.extended = extended;
 		this.truecolor = truecolor == null ? null : String.format("\u001b[38;2;%d;%d;%dm", truecolor.getRed(), truecolor.getGreen(), truecolor.getBlue());
 		this.substitute = substitute;
+		this.color = truecolor;
 	}
 	private ANSI(String basic, String extended, Color truecolor) {
 		this(basic, extended, truecolor, null);
@@ -54,6 +56,12 @@ public enum ANSI {
 		case BASIC: return this.toBasic();
 		case EXTENDED: return this.toExtended();
 		case TRUECOLOR: return this.toTrueColor();
+		case GUI: try {
+			return BubColor.valueOf(super.toString()).toString();
+		}
+		catch(Exception e) {
+			return "";
+		}
 		case NONE: return this.equals(CLEAR_LINE) ? "\n" : "";
 		default: return "";
 		}
@@ -70,8 +78,11 @@ public enum ANSI {
 	public ANSI getSubstitute() {
 		return substitute;
 	}
+	public Color toAWT() {
+		return color;
+	}
 	public static void setCursorPos(int line, int column) {
-		if(!InterceptClient.colorMode.equals(ColorMode.NONE)) 
+		if(!InterceptClient.colorMode.equals(ColorMode.NONE) && !InterceptClient.colorMode.equals(ColorMode.GUI)) 
 			System.out.printf("\033[%d;%dH%s", line, column, RESET_CURSOR);
 	}
 }
