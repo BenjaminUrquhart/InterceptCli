@@ -60,7 +60,7 @@ public class InterceptClient {
 		}
 	}
 	public static String shell(){
-		return showShell ? String.format(GREEN.toBasic() + SHELL + RESET, EventHandler.connectedIP) : "";
+		return showShell && colorMode != ColorMode.GUI ? String.format(GREEN.toBasic() + SHELL + RESET, EventHandler.connectedIP) : "";
 	}
 	public static void debug(Object text) {
 		debug(text, true);
@@ -146,6 +146,9 @@ public class InterceptClient {
 			debug(RED + e.toString());
 			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(RED + "at " + element));
 			DEBUG = oldDebug;
+			if(thread.getName().equals("Intercept Main Loop")) {
+				System.exit(1);
+			}
 		});
 		//Reset ANSI on shutdown and disable time-stamping
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
