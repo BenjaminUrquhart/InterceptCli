@@ -1,66 +1,66 @@
 package net.intercept.client;
 
-import java.net.Socket;
+import java.io.File;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
-import java.util.Scanner;
 
 import static net.intercept.client.color.ANSI.*;
 
-import java.io.*;
-
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import net.intercept.client.audio.JOrbisPlayer;
+import net.intercept.client.color.ANSI;
 import net.intercept.client.color.ColorMode;
 import net.intercept.client.macros.MacroManager;
+import net.intercept.client.networking.Connection;
 import net.intercept.client.networking.EventHandler;
 import net.intercept.client.networking.ReceiveHandler;
+import net.intercept.client.storage.StorageManager;
+import net.intercept.client.util.Input;
 import net.intercept.client.util.Timestamps;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class InterceptClient {
 
-	private static String IP = "209.97.136.54";
-	private static String TOKEN = null;
-	private static final int PORT = 13373;
+	//private static String IP = "209.97.136.54";
+	//private static String TOKEN = null;
+	//private static final int PORT = 13373;
+	
+	public static Connection conn;
 	
 	public static ColorMode colorMode = ColorMode.EXTENDED;
 	
-	public static final String SHELL = "root@%s~# ";
+	private static String username;
+	private static String ITCH_TOKEN;
+	public static String SHELL = "%s@%s~# ";
 	public static boolean MUTE = false, OGG = false, DEBUG = false, RECONNECTING = false;
 	
 	private static boolean showShell = false;
 	
-	private static Socket conn;
-	private static BufferedReader input;
-	private static PrintWriter output;
-	private static ReceiveHandler listener;
+	private static String ip;
 	
-	private static JSONObject auth;
-	
-	private static String ip, pass;
-	
+	public static JSONObject send(JSONObject json) {
+		if(json != null) {
+			debug(json);
+			conn.send(json);
+		}
+		try {
+			return new JSONObject(conn.readLine());
+		}
+		catch(Exception e) {
+			Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+		}
+		return null;
+	}
 	public static void setIP(String IP) {
 		ip = IP;
 	}
-	public static void setPass(String password) {
-		pass = password;
-	}
-	public synchronized static JSONObject send(JSONObject json) {
-		if(json != null) {
-			output.println(json);
-			output.flush();
-		}
-		try {
-			return new JSONObject(input.readLine());
-		}
-		catch(Exception e) {
-			return null;
-		}
-	}
 	public static String shell(){
-		return showShell ? String.format(GREEN.toBasic() + SHELL + RESET, EventHandler.connectedIP) : "";
+		return showShell && colorMode != ColorMode.GUI ? String.format(GREEN.toBasic() + SHELL + RESET, username, EventHandler.connectedIP) : "";
 	}
 	public static void debug(Object text) {
 		debug(text, true);
@@ -68,7 +68,7 @@ public class InterceptClient {
 	public static void debug(Object text, boolean method) {
 		if(DEBUG) {
 			StackTraceElement[] trace =  Thread.currentThread().getStackTrace();
-			System.out.printf("%s%s%s[DEBUG] %s%s%s%s%s: %s%s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, GRAY, trace[method ? 3 : 2].getClassName(), method ? ORANGE + "." : "", method ? trace[3].getMethodName() + "()" : "", RESET, CYAN, String.valueOf(text), RESET, shell());
+			System.out.printf("%s%s%s[DEBUG] %s%s%s%s%s: %s%s%s\n%s", RESET_CURSOR, CLEAR_LINE, CYAN, GRAY, trace[method ? 3 : 2].getClassName(), method ? ORANGE + "." : "", method ? trace[3].getMethodName() + "()" : "", RESET, CYAN, String.valueOf(text).replace(ITCH_TOKEN, "[CENSORED]"), RESET, shell());
 		}
 	}
 	private static String pad(String in) {
@@ -78,6 +78,24 @@ public class InterceptClient {
 		}
 		return in;
 	}
+	public static boolean isTokenValid() {
+		try {
+			Response response = Connection.CLIENT.newCall(
+					new Request.Builder()
+							   .url("https://itch.io/api/1/"+ITCH_TOKEN+"/credentials/info")
+							   .build()
+			).execute();
+			if(response.code() == 200) {
+				JSONObject json = new JSONObject(response.body().string());
+				return json.has("scopes") && json.getJSONArray("scopes").toList().contains("profile:me");
+			}
+		}
+		catch(Exception e) {
+			Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+		}
+		return false;
+	}
+	/*
 	public static void reconnect() {
 		int tries = 0;
 		boolean prevDebug = DEBUG;
@@ -131,7 +149,7 @@ public class InterceptClient {
 				try {Thread.sleep(1000*tries);}catch(Exception exec) {}
 			}
 		}
-	}
+	}*/
 	public static void main(String[] arguments) throws Exception {
 		Thread.currentThread().setName("Intercept Main Loop");
 		Thread.setDefaultUncaughtExceptionHandler((thread, e) -> {
@@ -146,6 +164,9 @@ public class InterceptClient {
 			debug(RED + e.toString());
 			Arrays.stream(e.getStackTrace()).forEach((element) -> debug(RED + "at " + element));
 			DEBUG = oldDebug;
+			if(thread.getName().equals("Intercept Main Loop")) {
+				System.exit(1);
+			}
 		});
 		//Reset ANSI on shutdown and disable time-stamping
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -154,7 +175,7 @@ public class InterceptClient {
 		}));
 		System.out.print(CLEAR_SCREEN + "" + RESET);
 		setCursorPos(0,0);
-		Scanner sc = null;
+		Input sc = null;
 		if(arguments.length > 0){
 			for(String arg : arguments){
 				if(arg.toLowerCase().equalsIgnoreCase("timestamps")) {
@@ -163,11 +184,11 @@ public class InterceptClient {
 				}
 				if(arg.toLowerCase().equals("gui")) {
 					try {
-						sc = new Scanner((InputStream)InterceptClient.class.getClassLoader().loadClass("net.intercept.gui.InterceptX").getDeclaredMethod("enable").invoke(null));
+						sc = new Input(net.intercept.gui.InterceptX.enable());
 						colorMode = ColorMode.GUI;
 					}
 					catch(Exception e) {
-						System.out.println("Failed to find GUI class. Defaulting to CLI");
+						System.out.println("Failed to start GUI. Defaulting to CLI");
 						debug(e);
 						Arrays.stream(e.getStackTrace()).forEach((trace) -> debug(YELLOW + "at " + trace));
 					}
@@ -205,10 +226,11 @@ public class InterceptClient {
 							+ "#############################################\n" 
 							+ RESET);
 				}
+				/*
 				if(arg.equalsIgnoreCase("local")){
 					System.out.println("Local mode enabled");
 					IP = "127.0.0.1";
-				}
+				}*/
 				if(arg.equalsIgnoreCase("mute")){
 					System.out.println("Sound disabled");
 					MUTE = true;
@@ -232,66 +254,72 @@ public class InterceptClient {
 			System.out.println(YELLOW + "Failed to get COLORTERM environment variable." + RESET);
 		}
 		System.out.println("Color mode: " + colorMode);
-		conn = new Socket(IP, PORT);
-		input = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		output = new PrintWriter(conn.getOutputStream());
+		conn = new Connection("wss://intercept.mudjs.net/ws");
+		Connection input = conn;
 		JSONObject json = new JSONObject(input.readLine());
 		if(sc == null) {
-			sc = new Scanner(System.in);
+			sc = new Input(System.in);
 		}
 		debug("Client ID: " + json.getString("client_id"));
 		debug("Client type: " + json.getString("client_type"));
 		debug("Date: " + new Date(json.getLong("date")));
 		debug("OS: " + System.getProperty("os.name"));
-		System.out.print(GREEN + "Login/Register: ");
-		boolean reg = sc.nextLine().toLowerCase().trim().equals("register");
-		boolean success = false;
-		System.out.println(reg ? "Creating a new account..." : "Logging in...");
-		auth = new JSONObject();
-		while(!success){
-			json = new JSONObject();
-			auth = new JSONObject();
-			json.put("request", "auth");
-			System.out.print(GREEN + "Username: ");
-			auth.put("username", sc.nextLine());
-			if(System.console() == null){System.out.print("Password: ");}
-			auth.put("password", System.console() == null ? sc.nextLine() : new String(System.console().readPassword("Password: ")));
-			if(reg) {
-				if(System.console() == null){System.out.print("Retype password: ");}
-				if(!auth.getString("password").equals(System.console() == null ? sc.nextLine() : new String(System.console().readPassword("Retype password: ")))) {
-					System.out.println(RED + "Passwords do not match");
-					continue;
-				}
-			}
-			if(auth.getString("password").isEmpty()) {
-				System.out.println(RED + "No password provided");
-				continue;
-			}
-			json.put(reg ? "register" : "login", auth);
-			debug(json.toString().replace(auth.getString("password"), "[CENSORED]"));
-			json = send(json);
-			debug(json.has("token") ? json.toString().replace(json.getString("token"), "[CENSORED]") : json);
-			if(json.has("success")){
-				success = json.getBoolean("success");
-			}
-			if(!success){
-				System.out.println(RED + json.getString("error"));
-			}
+		JSONObject auth = new JSONObject();
+		File tokenFile = new File(StorageManager.getStorageDir(), "auth_token");
+		boolean hasToken = tokenFile.exists();
+		if(hasToken) {
+			ITCH_TOKEN = new String(Files.readAllBytes(tokenFile.toPath()));
+			hasToken = isTokenValid();
 		}
-		json.put("request", "connect");
-		json.remove("cfg");
-		json.remove("event");
-		json.remove("success");
-		TOKEN = json.getString("token");
-		debug(json.toString().replace(json.getString("token"), "[CENSORED]"));
-		json = send(json);
-		if((json.has("sucess") && json.getBoolean("sucess")) || (json.has("success") && json.getBoolean("success"))){ //Not a typo, dev of Intercept did a goof
+		if(!hasToken) {
+			do {
+				System.out.println(tokenFile.exists() ? ORANGE + "Invalid auth token" : GREEN + "Intercept requires an Itch.io API token for authentication.");
+				System.out.print(GREEN + "Please paste your token here: ");
+				ITCH_TOKEN = sc.nextLine();
+				Files.write(tokenFile.toPath(), ITCH_TOKEN.getBytes());
+			} while(!isTokenValid());
+		}
+		System.out.println(GREEN + "Logging in...");
+		auth.put("request", "auth");
+		auth.put("key", ITCH_TOKEN);
+		json = send(auth);
+		auth.put("token", json.getString("token"));
+		auth.remove("key");
+		json = send(auth);
+		if(json.has("success") && json.getBoolean("success")){ 
+			json = send(new JSONObject().put("request", "systems"));
+			JSONArray systems = json.getJSONArray("systems");
+			JSONObject system;
+			int i = 0;
+			for(Object obj : systems) {
+				system = (JSONObject) obj;
+				System.out.println(GREEN + "" + i + ": " + system.getString("hostname") + "@" + system.getString("ip") + " (" + system.getString("type") + ")");
+				i++;
+			}
+			String selection = null;
+			int tmp = -1;
+			do {
+				System.out.print(GREEN + "Enter system index: ");
+				selection = sc.nextLine();
+				if(!selection.matches("\\d+")) {
+					System.out.println(ORANGE + "That's not a number.");
+				}
+				else {
+					tmp = Integer.parseInt(selection);
+					if(tmp < 0 || tmp >= i) {
+						System.out.println(ORANGE + "Invalid index.");
+						continue;
+					}
+				}
+			} while(tmp < 0);
+			system = (JSONObject) systems.get(tmp);
+			ip = system.getString("ip");
+			json = send(new JSONObject().put("request", "connect").put("system", system.getString("id")));
 			double volume = 1;
 			if(json.has("cfg")) {
 				volume = json.getJSONObject("cfg").getDouble("vol");
 			}
-			pass = send(new JSONObject().put("request", "command").put("cmd", "pass -l see")).getString("msg");
-			listener = new ReceiveHandler(input, volume);
+			ReceiveHandler listener = new ReceiveHandler(input, volume);
 			if(json.has("player")){
 				JSONObject player = json.getJSONObject("player");
 				ip = player.getString("ip");
@@ -304,7 +332,10 @@ public class InterceptClient {
 				}
 				
 			}
-			debug("Self: " + ip + " " + pass);
+			System.out.print(ANSI.CLEAR_SCREEN);
+			ANSI.setCursorPos(0, 0);
+			username = new JSONObject(input.readLine()).getString("user");
+			debug("Self: " + ip);
 			MacroManager.loadMacros();
 			showShell = true;
 			listener.handle(json);
@@ -456,28 +487,15 @@ public class InterceptClient {
 					System.out.print(shell());
 				}
 				else{
+					/*
 					if(line.matches("software transfer (\\d+) self")) {
 						line = line.replace("self", ip + " " + pass);
-					}
-					else if(line.matches("bits transfer self (\\d+)")) {
+					}*/
+					if(line.matches("bits transfer self (\\d+)")) {
 						line = line.replace("self", auth.getString("username"));
 					}
 					json.put("cmd", line);
-					try {
-						output.println(json);
-						output.flush();
-					}
-					catch(Exception e) {
-						if(RECONNECTING) {
-							while(RECONNECTING) {}
-						}
-						else {
-							reconnect();
-						}
-						output.println(json);
-						output.flush();
-					}
-					debug(json);
+					conn.send(json);
 				}
 			}
 		}
@@ -486,14 +504,12 @@ public class InterceptClient {
 				System.out.println("An error occurred while logging in!");
 				System.out.println(json.getString("error"));
 				conn.close();
-				sc.close();
 				System.exit(1);
 			}
 			else{
 				System.out.println("Received an unknown response from the server!");
 				System.out.println(json);
 				conn.close();
-				sc.close();
 				System.exit(1);
 			}
 		}

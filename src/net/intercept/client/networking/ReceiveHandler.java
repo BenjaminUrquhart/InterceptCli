@@ -2,7 +2,6 @@ package net.intercept.client.networking;
 
 import static net.intercept.client.color.ANSI.*;
 
-import java.io.BufferedReader;
 import java.net.SocketException;
 
 import org.json.JSONException;
@@ -13,10 +12,10 @@ import net.intercept.client.audio.Sound;
 
 public class ReceiveHandler extends Thread{
 
-	private BufferedReader reader;
+	private Connection reader;
 	private EventHandler handler;
 	
-	public ReceiveHandler(BufferedReader reader, double volume) throws Exception{
+	public ReceiveHandler(Connection reader, double volume) throws Exception{
 		this.reader = reader;
 		this.handler = new EventHandler(volume);
 		this.setName("Intercept Receive Handler");
@@ -49,8 +48,8 @@ public class ReceiveHandler extends Thread{
 		catch(NullPointerException | SocketException e){
 			Thread.getDefaultUncaughtExceptionHandler().uncaughtException(this, e);
 			System.out.println(RESET_CURSOR + "" + CLEAR_LINE + YELLOW + "Connection to server dropped unexpectedly");
-			InterceptClient.reconnect();
-			return;
+			//InterceptClient.reconnect();
+			System.exit(0);
 		}
 		catch(Exception e){
 			e.printStackTrace();

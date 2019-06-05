@@ -3,7 +3,7 @@ package net.intercept.client.storage;
 import java.io.File;
 
 public class StorageManager {
-	private static final File HOME = new File(System.getenv("HOME"));
+	private static final File HOME = new File(System.getProperty("user.dir"));
 	private static File STORAGE_DIR;
 	
 	public static File getStorageDir(){

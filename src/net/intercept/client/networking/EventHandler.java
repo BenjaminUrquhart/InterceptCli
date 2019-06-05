@@ -16,19 +16,17 @@ public class EventHandler {
 
 	public static String connectedIP = "system";
 	private static Sound sound;
-	private boolean panic;
 	
 	public EventHandler(double volume) {
 		if(sound == null) {
 			sound = InterceptClient.OGG ? new SoundHandlerOgg(volume) : new SoundHandler(volume);
-			this.panic = false;
 		}
 	}
 	public Sound getSoundHandler() {
 		return sound;
 	}
 	public void handleEvent(JSONObject json){
-		InterceptClient.debug(json);
+		//InterceptClient.debug(json);
 		if(!json.has("event")){
 			System.out.println(
 					RED
@@ -40,32 +38,23 @@ public class EventHandler {
 		}
 		String event = json.getString("event");
 		String msg = "(no content)";
-		String local, remote = null;
-		JSONObject conn = null;
+		String remote = null;
 		boolean broadcast = event.equals("broadcast");
 		if(json.has("msg")){
 			msg = json.getString("msg").replace("\u001b", "\\u001b");
 			//InterceptClient.debug(msg);
 			msg = toANSI(msg);
 		}
-		if(event.equals("error")){
+		if(json.has("error")){
 			msg = json.getString("error");
 		}
+		else if(event.equals("pong")) {
+			return; // We don't deal with ping pongs here
+		}
 		else if(event.equals("connected")){
-			conn = json.getJSONObject("player");
-			local = conn.getString("ip");
-			remote = conn.getString("conn");
-			if(local.equals(remote)){
-				msg = "[INFO] Disconnected from server";
-				connectedIP = "localhost";
-				if(panic){
-					json.put("panicEnd", true);
-				}
-			}
-			else{
-				connectedIP = remote;
-				msg = String.format("[INFO] %s -> %s", local, remote);
-			}
+			remote = json.getString("hostname");
+			msg = String.format("[INFO] %s -> %s", connectedIP, remote);
+			connectedIP = remote;
 		}
 		else if(event.equals("command") || broadcast || event.equals("connect")){} //To suppress the Unknown Event message
 		else if(event.equals("traceStart")){
@@ -90,6 +79,7 @@ public class EventHandler {
 		}
 		if(broadcast){
 			msg = BLUE + "[BROADCAST] " + RESET + msg;
+			/*
 			if(msg.contains(
 					"Generating filesystem...\n" + 
 					"Updating...\n" + 
@@ -106,14 +96,13 @@ public class EventHandler {
 				else {
 					System.out.printf("%s%s%sOwner of this system has abandoned. New IP: %s%s%s", CLEAR_LINE, RESET_CURSOR, ORANGE, GREEN, ip, RESET);
 				}
-			}
+			}*/
 		}
 		if(json.has("panic")){
 			msg = RED
 					+ "You are in panic mode"
 					+ RESET
 					+ "\n" + msg;
-			panic = true;
 			sound.setTrack(sound instanceof SoundHandlerOgg ? "breach" : "breach_loop_concat");
 		}
 		if(json.has("panicEnd")){
@@ -121,7 +110,6 @@ public class EventHandler {
 					+ "You are no longer in panic mode"
 					+ RESET
 					+ "\n" + msg;
-			panic = false;
 			sound.setTrack("peace2");
 		}
 		System.out.print(RESET + "" + CLEAR_LINE + RESET_CURSOR);

@@ -22,8 +22,8 @@ public class MacroManager {
 	public static void loadMacros(){
 		InterceptClient.debug("Loading macros...");
 		macros = new HashMap<>();
-		macroStorage = new File(StorageManager.getStorageDir(), "macros.json");
 		try{
+			macroStorage = new File(StorageManager.getStorageDir(), "macros.json");
 			if(!macroStorage.exists()){
 				InterceptClient.debug("Macros file missing, creating a new one...");
 				Files.write(macroStorage.toPath(), "[]".getBytes());
@@ -41,6 +41,11 @@ public class MacroManager {
 				}
 			});
 			System.out.println(CLEAR_LINE + "" + RESET_CURSOR + GREEN + "Loaded " + macros.values().size() + " macros.");
+		}
+		catch(ExceptionInInitializerError e) {
+			System.out.println(YELLOW + "Failed to load macros: " + e);
+			Arrays.stream(e.getStackTrace()).forEach((trace) -> InterceptClient.debug(YELLOW.toString() + trace));
+			System.out.print(RESET);
 		}
 		catch(Exception e){
 			System.out.println(YELLOW + "Failed to load macros: " + e);
