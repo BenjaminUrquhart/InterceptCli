@@ -60,7 +60,7 @@ public class InterceptClient {
 		}
 	}
 	public static String shell(){
-		return showShell ? String.format(GREEN.toBasic() + SHELL + RESET, EventHandler.connectedIP) : "";
+		return showShell ? String.format((colorMode == ColorMode.NONE ? "" : GREEN.toBasic()) + SHELL + RESET, EventHandler.connectedIP) : "";
 	}
 	public static void debug(Object text) {
 		debug(text, true);
