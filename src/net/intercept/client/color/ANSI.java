@@ -56,12 +56,12 @@ public enum ANSI {
 		case BASIC: return this.toBasic();
 		case EXTENDED: return this.toExtended();
 		case TRUECOLOR: return this.toTrueColor();
-		case GUI: try {
+		case GUI: /*try {
 			return BubColor.valueOf(super.toString()).toString();
 		}
 		catch(Exception e) {
 			return "";
-		}
+		}*/
 		case NONE: return this.equals(CLEAR_LINE) ? "\n" : "";
 		default: return "";
 		}
